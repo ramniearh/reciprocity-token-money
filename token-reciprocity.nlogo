@@ -9,7 +9,42 @@
 ; new turtles created with average fitness.
      ; alternative of resetting total fitness at every round privileges cheaters (doesn't leave enough time to accumulate?)
 
+
+; questions for parameter-sweeping:
+; ok, suckers are vulnerable to cheater invasion. cheaters are vulnerable to grudger invasion, for certain parameters (-check: benefit/cost > than..
+; but! grudger total welfare higher than token!
+; RQ: under which circumstances/parameters is a grudger population vulnerable to token invasion? and under which circumstances is this welfare-enhancing?
+; without grudger memory cap: always outperforms? or depends on structure of tokens?
+; with grudger memory cap - exogenous explanation, ok. still, how does token structure affect welfare? and what are some constraints on which token routines might evolve?
+; then compare token with reputation
+; then spatialize
+;
+;
+;
+; also ofcourse review structured populations, Smaldino 2017; x division of labor as a modifier to conclusions above
+
+
+; review Nowak ESS RD AD:
+;Figure 2.
+;Evolutionary dynamics of cooperators and defectors. The red and blue arrows indicate
+;selection favoring defectors and cooperators, respectively. (a) Without any mechanism for
+;the evolution of cooperation, defectors dominate. A mechanism for evolution of cooperation
+;can allow cooperators to be the evolutionarily stable strategy (ESS), risk dominant (RD) or
+;advantageous (AD) in comparison with defectors. (b) Cooperators are ESS if they can resist
+;invasion by defectors. (c) Cooperators are RD if the basin of attraction of defectors is less
+;than 1/2. (d) Cooperators are AD if the basin of attraction of defectors is less that 1/3. In this
+;case, the fixation probability of a single cooperator in a finite population of defectors is
+;greater than the inverse of the population size (for weak selection). (e) Some mechanisms
+;allow cooperators to dominate defectors.
+
+
 globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-welfare grudger-welfare token-welfare
+  total-welfare-per-tick
+  avg-welfare-per-tick
+  sucker-welfare-per-tick
+  cheater-welfare-per-tick
+  grudger-welfare-per-tick
+  token-welfare-per-tick
   total-welfare-1000
   avg-welfare-1000
   sucker-welfare-1000
@@ -84,6 +119,7 @@ to go
   if evolve? [evolve-all]
 
   tick
+  report-welfare-per-tick
   if ticks = 1000 [report1000]
   if ticks = 10000 [report10000]
 end
@@ -105,11 +141,12 @@ to interact
     ifelse not member? item 0 [other-end] of my-links blacklist [ groom ] [ not-groom ]
   ]
     if ( my-strategy = "token" ) and has-token? = false [ ;"conditional hastoken"
-      if [has-token?] of item 0 [other-end] of my-links = true [
+      ifelse [has-token?] of item 0 [other-end] of my-links = true [
       groom
       ask item 0 [other-end] of my-links [set has-token? false]
       set has-token? true
     ]
+    [ not-groom ] ;RECHECK TOKEN BEHAVIOR WITH 0 tokens
     ; implement token-swap (self-myself)?
   ]
   ; other variations of token? actual swap interaction; unconditional groom-for-token (even if already has token)? add quantifiable/addable tokens?
@@ -133,6 +170,17 @@ to not-groom
     ]; cap length of memory string
   ]
 end
+
+to report-welfare-per-tick
+  set total-welfare-per-tick total-welfare / ticks
+  set avg-welfare-per-tick avg-welfare / ticks
+  set sucker-welfare-per-tick sucker-welfare / ticks
+  set cheater-welfare-per-tick cheater-welfare / ticks
+  set grudger-welfare-per-tick grudger-welfare / ticks
+  set token-welfare-per-tick token-welfare / ticks
+
+end
+
 
 to report1000
   set total-welfare-1000 total-welfare
@@ -270,7 +318,7 @@ SWITCH
 271
 sucker
 sucker
-1
+0
 1
 -1000
 
@@ -281,7 +329,7 @@ SWITCH
 461
 token
 token
-1
+0
 1
 -1000
 
@@ -298,9 +346,9 @@ cheater
 
 SWITCH
 57
-324
+337
 160
-357
+370
 grudger
 grudger
 0
@@ -308,11 +356,11 @@ grudger
 -1000
 
 TEXTBOX
-70
+45
 213
-220
-231
---STRATEGIES--
+195
+243
+--AVAILABLE STRATEGIES--
 11
 0.0
 1
@@ -365,7 +413,7 @@ true
 true
 "" ""
 PENS
-"sucker" 1.0 0 -11085214 true "" "plot sucker-welfare "
+"sucker" 1.0 0 -10899396 true "" "plot sucker-welfare "
 "cheater" 1.0 0 -7500403 true "" "plot cheater-welfare"
 "grudger" 1.0 0 -955883 true "" "plot grudger-welfare"
 "token" 1.0 0 -13345367 true "" "plot token-welfare"
@@ -387,7 +435,7 @@ true
 true
 "" ""
 PENS
-"\"suckers\"" 1.0 0 -8330359 true "" "plot count turtles with [ my-strategy = \"sucker\" ]"
+"\"suckers\"" 1.0 0 -10899396 true "" "plot count turtles with [ my-strategy = \"sucker\" ]"
 "\"cheaters\"" 1.0 0 -7500403 true "" "plot count turtles with [ my-strategy = \"cheater\" ]"
 "\"grudgers\"" 1.0 0 -955883 true "" "plot count turtles with [ my-strategy = \"grudger\" ]"
 "\"token\"" 1.0 0 -13345367 true "" "plot count turtles with [ my-strategy = \"token\" ]"
@@ -437,15 +485,15 @@ count turtles
 11
 
 SLIDER
-30
-466
-202
-499
+23
+464
+195
+497
 token%
 token%
 0
 100
-45.0
+28.0
 1
 1
 NIL
@@ -474,40 +522,40 @@ count turtles with [has-token? = true]
 11
 
 TEXTBOX
-857
-400
-1007
+870
+393
+1057
+421
+(TOTAL) WELFARE REPORTERS
+11
+0.0
+1
+
+TEXTBOX
+910
 418
-WELFARE REPORTERS AT
+1060
+436
+at 1000 ticks
 11
 0.0
 1
 
 TEXTBOX
-805
-419
-955
-437
-1000 ticks
-11
-0.0
-1
-
-TEXTBOX
-983
-422
-1133
-440
-10000 ticks
+1090
+418
+1240
+436
+at 10000 ticks
 11
 0.0
 1
 
 MONITOR
-831
-441
-898
-486
+924
+492
+984
+537
 total
 total-welfare-1000
 1
@@ -515,10 +563,10 @@ total-welfare-1000
 11
 
 MONITOR
-757
-441
-824
-486
+852
+443
+919
+488
 sucker
 sucker-welfare-1000
 1
@@ -526,10 +574,10 @@ sucker-welfare-1000
 11
 
 MONITOR
-758
-488
-824
-533
+853
+490
+919
+535
 cheater
 cheater-welfare-1000
 1
@@ -537,10 +585,10 @@ cheater-welfare-1000
 11
 
 MONITOR
-759
-537
-825
-582
+854
+539
+920
+584
 grudger
 grudger-welfare-1000
 1
@@ -548,10 +596,10 @@ grudger-welfare-1000
 11
 
 MONITOR
-758
-585
-824
-630
+853
+587
+919
+632
 token
 token-welfare-1000
 1
@@ -559,10 +607,10 @@ token-welfare-1000
 11
 
 MONITOR
-1016
-442
-1103
-487
+1100
+495
+1158
+540
 total
 total-welfare-10000
 1
@@ -570,10 +618,10 @@ total-welfare-10000
 11
 
 MONITOR
-939
-443
-1008
-488
+1022
+445
+1091
+490
 sucker
 sucker-welfare-10000
 1
@@ -581,10 +629,10 @@ sucker-welfare-10000
 11
 
 MONITOR
-939
-491
-1009
-536
+1022
+493
+1092
+538
 cheater
 cheater-welfare-10000
 1
@@ -592,10 +640,10 @@ cheater-welfare-10000
 11
 
 MONITOR
-939
-539
-1009
-584
+1022
+541
+1092
+586
 grudger
 grudger-welfare-10000
 1
@@ -603,10 +651,10 @@ grudger-welfare-10000
 11
 
 MONITOR
-939
-586
-1009
-631
+1022
+588
+1092
+633
 token
 token-welfare-10000
 1
@@ -614,10 +662,10 @@ token-welfare-10000
 11
 
 MONITOR
-833
-491
-896
-536
+925
+539
+988
+584
 average
 avg-welfare-1000
 1
@@ -625,10 +673,10 @@ avg-welfare-1000
 11
 
 MONITOR
-1018
-491
-1077
-536
+1099
+543
+1158
+588
 average
 avg-welfare-10000
 1
@@ -637,18 +685,116 @@ avg-welfare-10000
 
 SLIDER
 23
-361
+374
 195
-394
+407
 grudger-memory-cap
 grudger-memory-cap
 0
 population
-100.0
+80.0
 1
 1
 NIL
 HORIZONTAL
+
+MONITOR
+700
+437
+757
+482
+sucker
+sucker-welfare-per-tick
+1
+1
+11
+
+MONITOR
+701
+488
+758
+533
+cheater
+cheater-welfare-per-tick
+1
+1
+11
+
+MONITOR
+701
+540
+758
+585
+grudger
+grudger-welfare-per-tick
+1
+1
+11
+
+MONITOR
+702
+588
+759
+633
+token
+token-welfare-per-tick
+1
+1
+11
+
+TEXTBOX
+762
+414
+912
+432
+per tick
+11
+0.0
+1
+
+MONITOR
+766
+489
+823
+534
+total
+total-welfare-per-tick
+17
+1
+11
+
+MONITOR
+766
+540
+825
+585
+average
+avg-welfare-per-tick
+1
+1
+11
+
+PLOT
+1215
+421
+1628
+624
+per-tick welfare of strategy
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"total" 1.0 0 -16777216 true "" "plot total-welfare-per-tick"
+"sucker" 1.0 0 -10899396 true "" "plot sucker-welfare-per-tick"
+"cheater" 1.0 0 -7500403 true "" "plot cheater-welfare-per-tick"
+"grudger" 1.0 0 -955883 true "" "plot grudger-welfare-per-tick"
+"token" 1.0 0 -13345367 true "" "plot token-welfare-per-tick"
 
 @#$#@#$#@
 ## WHAT IS IT?
