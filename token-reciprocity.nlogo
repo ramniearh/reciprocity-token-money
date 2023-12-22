@@ -9,7 +9,21 @@
 ; new turtles created with average fitness.
      ; alternative of resetting total fitness at every round privileges cheaters (doesn't leave enough time to accumulate?)
 
-globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-welfare grudger-welfare token-welfare]
+globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-welfare grudger-welfare token-welfare
+  total-welfare-1000
+  avg-welfare-1000
+  sucker-welfare-1000
+  cheater-welfare-1000
+  grudger-welfare-1000
+  token-welfare-1000
+  total-welfare-10000
+  avg-welfare-10000
+  sucker-welfare-10000
+  cheater-welfare-10000
+  grudger-welfare-10000
+  token-welfare-10000
+
+]
 
 turtles-own [ has-token? my-strategy fitness blacklist ]
 
@@ -67,10 +81,11 @@ to go
   set total-welfare sum [fitness] of turtles
   set avg-welfare total-welfare / population
 
- ; reset fitness landscape every 10 turns
   if evolve? [evolve-all]
 
   tick
+  if ticks = 1000 [report1000]
+  if ticks = 10000 [report10000]
 end
 
 to find-partner
@@ -83,26 +98,22 @@ to interact
     if my-strategy = "sucker" [
     groom
   ]
-
     if my-strategy = "cheater" [
     not-groom ;implies received groomed but did not reciprocate
   ]
-
     if my-strategy = "grudger" [ ;nice tit for tat. evaluate grim trigger?
     ifelse not member? item 0 [other-end] of my-links blacklist [ groom ] [ not-groom ]
-    ]
-
+  ]
     if ( my-strategy = "token" ) and has-token? = false [ ;"conditional hastoken"
-    if [has-token?] of item 0 [other-end] of my-links = true [
+      if [has-token?] of item 0 [other-end] of my-links = true [
       groom
       ask item 0 [other-end] of my-links [set has-token? false]
       set has-token? true
     ]
-    ;token-swap (self myself)
+    ; implement token-swap (self-myself)?
   ]
-  ; other variations of token? actual swap interaction; only groom if I don't have token (conditional)
+  ; other variations of token? actual swap interaction; unconditional groom-for-token (even if already has token)? add quantifiable/addable tokens?
   ; add reciprocator? only groom whitelist? need nice trigger?
-
 end
 
 to groom
@@ -121,10 +132,28 @@ to not-groom
   ]
 end
 
+to report1000
+  set total-welfare-1000 total-welfare
+  set avg-welfare-1000 avg-welfare
+  set sucker-welfare-1000 sucker-welfare
+  set cheater-welfare-1000 cheater-welfare
+  set grudger-welfare-1000 grudger-welfare
+  set token-welfare-1000 token-welfare
+end
+
+to report10000
+  set total-welfare-10000 total-welfare
+  set avg-welfare-10000 avg-welfare
+  set sucker-welfare-10000 sucker-welfare
+  set cheater-welfare-10000 cheater-welfare
+  set grudger-welfare-10000 grudger-welfare
+  set token-welfare-10000 token-welfare
+end
+
+
+
 to token-swap [ A B ]; risk of double-swap with two interactions per turn? - implies some DC or?
   ;tokens disappearing!
-
-
 end
 
 to evolve-all
@@ -132,7 +161,7 @@ to evolve-all
 
   ask min-n-of n turtles [ fitness ] [ die ]
   create-turtles n [ right random 180 fd random 13
-    set fitness avg-welfare ;new turtles have average fitness. alternatively, reset and recalculate fitness, see below
+    set fitness avg-welfare ;new turtles have average fitness. alternatively, reset and recalculate fitness?
     ;set fitness 0;testing
     ifelse random 100 < token% [set has-token? true][set has-token? false] ;REVIEW
     set my-strategy one-of active-strategies
@@ -141,28 +170,13 @@ to evolve-all
     shape-me
   ]
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;  if ticks mod 10 = 0 [ show "0ev"
-;  ask min-one-of turtles [ fitness ] [ die ]
-;    crt 1 [ right random 180 fd 13
-;    set fitness 0
-;    set has-token? false
-;    set my-strategy one-of active-strategies
-;    set blacklist []
-;    color-me
-;  ]]
-;  ask turtles [ set fitness 0 ] ; reset fitness landscape every 10 turns
-
-;;;;;;;;;
-;  ask min-one-of turtles [ fitness ] [ die ]
-;  ask max-one-of turtles [ fitness ] [ hatch 1 fd 2 - random 5 set my-strategy one-of active-strategies  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-647
-448
+241
+12
+678
+450
 -1
 -1
 13.0
@@ -186,10 +200,10 @@ ticks
 30.0
 
 INPUTBOX
-31
-46
-101
-106
+18
+40
+88
+100
 population
 100.0
 1
@@ -197,10 +211,10 @@ population
 Number
 
 BUTTON
-266
-455
-329
-488
+335
+462
+398
+495
 NIL
 setup
 NIL
@@ -214,10 +228,10 @@ NIL
 1
 
 BUTTON
-337
-456
-400
-489
+406
+463
+469
+496
 NIL
 go
 NIL
@@ -231,10 +245,10 @@ NIL
 1
 
 BUTTON
-406
-456
-469
-489
+475
+463
+538
+496
 NIL
 go
 T
@@ -248,10 +262,10 @@ NIL
 1
 
 SWITCH
-48
-275
-151
-308
+57
+238
+160
+271
 sucker
 sucker
 0
@@ -259,21 +273,21 @@ sucker
 -1000
 
 SWITCH
-48
-392
-151
-425
+57
+355
+160
+388
 token
 token
-0
+1
 1
 -1000
 
 SWITCH
-48
-313
-151
-346
+57
+276
+160
+309
 cheater
 cheater
 0
@@ -281,10 +295,10 @@ cheater
 -1000
 
 SWITCH
-48
-353
-151
-386
+57
+316
+160
+349
 grudger
 grudger
 0
@@ -292,31 +306,31 @@ grudger
 -1000
 
 TEXTBOX
-61
-250
-211
-268
+70
+213
+220
+231
 --STRATEGIES--
 11
 0.0
 1
 
 INPUTBOX
-54
-118
-104
-178
+98
+40
+148
+100
 cost
-2.0
+3.0
 1
 0
 Number
 
 INPUTBOX
-109
-119
-162
-179
+159
+40
+212
+100
 benefit
 10.0
 1
@@ -334,11 +348,11 @@ TEXTBOX
 1
 
 PLOT
-735
-199
-1106
-349
-average welfares (total and across strategies)
+698
+174
+1181
+324
+per-capita welfare of strategy
 NIL
 NIL
 0.0
@@ -349,11 +363,11 @@ true
 true
 "" ""
 PENS
-"total" 1.0 0 -16777216 true "" "plot total-welfare / population"
-"sucker" 1.0 0 -11085214 true "" "plot sucker-welfare / count turtles with [my-strategy = \"sucker\"]"
-"cheater" 1.0 0 -7500403 true "" "plot cheater-welfare / count turtles with [my-strategy = \"cheater\"]"
-"grudger" 1.0 0 -955883 true "" "plot grudger-welfare / count turtles with [my-strategy = \"grudger\"]"
-"token" 1.0 0 -13345367 true "" "plot token-welfare / count turtles with [my-strategy = \"token\"]"
+"sucker" 1.0 0 -11085214 true "" "plot sucker-welfare "
+"cheater" 1.0 0 -7500403 true "" "plot cheater-welfare"
+"grudger" 1.0 0 -955883 true "" "plot grudger-welfare"
+"token" 1.0 0 -13345367 true "" "plot token-welfare"
+"total" 1.0 0 -16777216 true "" "plot total-welfare"
 
 PLOT
 698
@@ -377,10 +391,10 @@ PENS
 "\"token\"" 1.0 0 -13345367 true "" "plot count turtles with [ my-strategy = \"token\" ]"
 
 MONITOR
-866
-360
-951
-405
+835
+331
+920
+376
 NIL
 total-welfare
 1
@@ -388,10 +402,10 @@ total-welfare
 11
 
 MONITOR
-959
-357
-1039
-402
+924
+331
+1004
+376
 NIL
 avg-welfare
 1
@@ -399,10 +413,10 @@ avg-welfare
 11
 
 INPUTBOX
-107
-46
-203
-106
+115
+125
+211
+185
 replacement-rate
 0.01
 1
@@ -410,10 +424,10 @@ replacement-rate
 Number
 
 MONITOR
-771
-359
-854
-404
+741
+331
+824
+376
 NIL
 count turtles
 17
@@ -421,10 +435,10 @@ count turtles
 11
 
 SLIDER
-19
-430
-191
-463
+28
+393
+200
+426
 token%
 token%
 0
@@ -436,10 +450,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-55
-186
-158
-219
+18
+133
+108
+166
 evolve?
 evolve?
 0
@@ -447,13 +461,98 @@ evolve?
 -1000
 
 MONITOR
-773
-466
-882
-511
+1013
+331
+1122
+376
 circulating tokens
 count turtles with [has-token? = true]
 0
+1
+11
+
+TEXTBOX
+867
+412
+1017
+430
+WELFARES REPORTERS AT
+11
+0.0
+1
+
+TEXTBOX
+815
+431
+965
+449
+1000 ticks
+11
+0.0
+1
+
+TEXTBOX
+950
+434
+1100
+452
+10000 ticks
+11
+0.0
+1
+
+MONITOR
+841
+453
+908
+498
+total
+total-welfare-1000
+1
+1
+11
+
+MONITOR
+767
+453
+834
+498
+sucker
+sucker-welfare-1000
+1
+1
+11
+
+MONITOR
+768
+500
+834
+545
+cheater
+cheater-welfare-1000
+1
+1
+11
+
+MONITOR
+768
+549
+834
+594
+grudger
+grudger-welfare-1000
+1
+1
+11
+
+MONITOR
+768
+597
+834
+642
+token
+token-welfare-1000
+1
 1
 11
 
