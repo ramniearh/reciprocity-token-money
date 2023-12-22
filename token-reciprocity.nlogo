@@ -125,10 +125,12 @@ end
 
 to not-groom
   ask link-neighbors [
-    if not member? myself blacklist
-
-    [set blacklist fput myself blacklist]
-
+    if not member? myself blacklist [
+      set blacklist fput myself blacklist
+    ]
+    if length blacklist > grudger-memory-cap [
+      set blacklist remove-item ( length blacklist - 1 ) blacklist
+    ]; cap length of memory string
   ]
 end
 
@@ -268,15 +270,15 @@ SWITCH
 271
 sucker
 sucker
-0
+1
 1
 -1000
 
 SWITCH
-57
-355
-160
-388
+59
+428
+162
+461
 token
 token
 1
@@ -296,9 +298,9 @@ cheater
 
 SWITCH
 57
-316
+324
 160
-349
+357
 grudger
 grudger
 0
@@ -321,7 +323,7 @@ INPUTBOX
 148
 100
 cost
-3.0
+2.0
 1
 0
 Number
@@ -332,7 +334,7 @@ INPUTBOX
 212
 100
 benefit
-10.0
+5.0
 1
 0
 Number
@@ -435,10 +437,10 @@ count turtles
 11
 
 SLIDER
-28
-393
-200
-426
+30
+466
+202
+499
 token%
 token%
 0
@@ -472,40 +474,40 @@ count turtles with [has-token? = true]
 11
 
 TEXTBOX
-867
-412
-1017
-430
-WELFARES REPORTERS AT
+857
+400
+1007
+418
+WELFARE REPORTERS AT
 11
 0.0
 1
 
 TEXTBOX
-815
-431
-965
-449
+805
+419
+955
+437
 1000 ticks
 11
 0.0
 1
 
 TEXTBOX
-950
-434
-1100
-452
+983
+422
+1133
+440
 10000 ticks
 11
 0.0
 1
 
 MONITOR
-841
-453
-908
-498
+831
+441
+898
+486
 total
 total-welfare-1000
 1
@@ -513,10 +515,10 @@ total-welfare-1000
 11
 
 MONITOR
-767
-453
-834
-498
+757
+441
+824
+486
 sucker
 sucker-welfare-1000
 1
@@ -524,10 +526,10 @@ sucker-welfare-1000
 11
 
 MONITOR
-768
-500
-834
-545
+758
+488
+824
+533
 cheater
 cheater-welfare-1000
 1
@@ -535,10 +537,10 @@ cheater-welfare-1000
 11
 
 MONITOR
-768
-549
-834
-594
+759
+537
+825
+582
 grudger
 grudger-welfare-1000
 1
@@ -546,15 +548,107 @@ grudger-welfare-1000
 11
 
 MONITOR
-768
-597
-834
-642
+758
+585
+824
+630
 token
 token-welfare-1000
 1
 1
 11
+
+MONITOR
+1016
+442
+1103
+487
+total
+total-welfare-10000
+1
+1
+11
+
+MONITOR
+939
+443
+1008
+488
+sucker
+sucker-welfare-10000
+1
+1
+11
+
+MONITOR
+939
+491
+1009
+536
+cheater
+cheater-welfare-10000
+1
+1
+11
+
+MONITOR
+939
+539
+1009
+584
+grudger
+grudger-welfare-10000
+1
+1
+11
+
+MONITOR
+939
+586
+1009
+631
+token
+token-welfare-10000
+1
+1
+11
+
+MONITOR
+833
+491
+896
+536
+average
+avg-welfare-1000
+1
+1
+11
+
+MONITOR
+1018
+491
+1077
+536
+average
+avg-welfare-10000
+1
+1
+11
+
+SLIDER
+23
+361
+195
+394
+grudger-memory-cap
+grudger-memory-cap
+0
+population
+100.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
