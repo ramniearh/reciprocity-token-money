@@ -69,12 +69,12 @@ turtles-own [ has-token? my-strategy fitness blacklist ]
 
 to setup
   clear-all
-  if ( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ) [ error "No strategy selected. Execution stopped." stop ]
   set active-strategies [ ]
   if sucker [ set active-strategies lput "sucker" active-strategies ]
   if cheater [ set active-strategies lput "cheater" active-strategies ]
-  if grudger [ set active-strategies lput "grudger" active-strategies ]
-  if token [ set active-strategies lput "token" active-strategies ]
+  if grudger-memory-cap > 0 [ set active-strategies lput "grudger" active-strategies ]
+  if token% > 0 [ set active-strategies lput "token" active-strategies ]
+  if ( not sucker ) and ( not cheater ) and ( grudger-memory-cap = 0 ) and ( token% = 0 ) [ set active-strategies lput "NOSTRAT-ERROR"active-strategies]
 
   crt population [ right random 180 fd 13
     set fitness 0
@@ -98,7 +98,7 @@ end
 
 to shape-me
   ifelse has-token? [ set shape "star" ][set shape "default"]
-
+  if my-strategy = "NOSTRAT-ERROR" [set shape "turtle"]
 end
 
 
@@ -317,45 +317,23 @@ NIL
 1
 
 SWITCH
-57
-238
-160
-271
+23
+236
+113
+269
 sucker
 sucker
-1
-1
--1000
-
-SWITCH
-59
-428
-162
-461
-token
-token
-1
-1
--1000
-
-SWITCH
-57
-276
-160
-309
-cheater
-cheater
 0
 1
 -1000
 
 SWITCH
-57
-337
-160
-370
-grudger
-grudger
+23
+274
+113
+307
+cheater
+cheater
 0
 1
 -1000
@@ -490,15 +468,15 @@ count turtles
 11
 
 SLIDER
-23
-464
-195
-497
+19
+348
+111
+381
 token%
 token%
 0
 100
-60.0
+0.0
 1
 1
 NIL
@@ -557,10 +535,10 @@ at 10000 ticks
 1
 
 MONITOR
-928
-489
-978
-534
+927
+449
+987
+494
 total
 total-welfare-1000
 1
@@ -614,7 +592,7 @@ token-welfare-1000
 MONITOR
 1108
 488
-1158
+1166
 533
 total
 total-welfare-10000
@@ -669,7 +647,7 @@ token-welfare-10000
 MONITOR
 928
 536
-978
+991
 581
 average
 avg-welfare-1000
@@ -679,9 +657,9 @@ avg-welfare-1000
 
 MONITOR
 1107
-537
-1157
-582
+536
+1166
+581
 average
 avg-welfare-10000
 1
@@ -689,15 +667,15 @@ avg-welfare-10000
 11
 
 SLIDER
-23
-374
-195
-407
+6
+310
+125
+343
 grudger-memory-cap
 grudger-memory-cap
 0
 population
-50.0
+0.0
 1
 1
 NIL
@@ -760,7 +738,7 @@ per tick
 MONITOR
 766
 489
-816
+823
 534
 total
 total-welfare-per-tick
@@ -771,7 +749,7 @@ total-welfare-per-tick
 MONITOR
 766
 540
-816
+825
 585
 average
 avg-welfare-per-tick
@@ -800,6 +778,26 @@ PENS
 "cheater" 1.0 0 -7500403 true "" "plot cheater-welfare-per-tick"
 "grudger" 1.0 0 -955883 true "" "plot grudger-welfare-per-tick"
 "token" 1.0 0 -13345367 true "" "plot token-welfare-per-tick"
+
+TEXTBOX
+129
+322
+279
+340
+0 to remove strategy
+9
+0.0
+1
+
+TEXTBOX
+121
+355
+271
+373
+0 to remove strategy
+9
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1328,7 +1326,7 @@ NetLogo 6.4.0
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="1000"/>
-    <exitCondition>(( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ))</exitCondition>
+    <exitCondition>( not sucker ) and ( not cheater ) and ( grudger-memory-cap = 0 ) and ( token% = 0 )</exitCondition>
     <metric>sucker-welfare</metric>
     <metric>cheater-welfare</metric>
     <metric>grudger-welfare</metric>
@@ -1345,6 +1343,64 @@ NetLogo 6.4.0
     <enumeratedValueSet variable="sucker">
       <value value="false"/>
       <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="grudger-memory-cap">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="token%">
+      <value value="0"/>
+      <value value="10"/>
+      <value value="20"/>
+      <value value="30"/>
+      <value value="40"/>
+      <value value="50"/>
+      <value value="60"/>
+      <value value="70"/>
+      <value value="80"/>
+      <value value="90"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="complete-p100-c2b5-e1% streamlined" repetitions="25" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1000"/>
+    <exitCondition>( not sucker ) and ( not cheater ) and ( grudger-memory-cap = 0 ) and ( token% = 0 )</exitCondition>
+    <metric>sucker-welfare</metric>
+    <metric>cheater-welfare</metric>
+    <metric>grudger-welfare</metric>
+    <metric>token-welfare</metric>
+    <metric>total-welfare</metric>
+    <metric>count turtles with [ my-strategy = "sucker" ]</metric>
+    <metric>count turtles with [ my-strategy = "cheater" ]</metric>
+    <metric>count turtles with [ my-strategy = "grudger" ]</metric>
+    <metric>count turtles with [ my-strategy = "token" ]</metric>
+    <enumeratedValueSet variable="cheater">
+      <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sucker">
+      <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="grudger-memory-cap">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="token%">
+      <value value="0"/>
+      <value value="20"/>
+      <value value="40"/>
+      <value value="60"/>
+      <value value="80"/>
+      <value value="100"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
