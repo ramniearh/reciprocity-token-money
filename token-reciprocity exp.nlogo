@@ -476,7 +476,7 @@ token%
 token%
 0
 100
-0.0
+40.0
 1
 1
 NIL
@@ -675,7 +675,7 @@ grudger-memory-cap
 grudger-memory-cap
 0
 population
-0.0
+40.0
 1
 1
 NIL
@@ -1146,182 +1146,6 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="sucker-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="1111"/>
-    <metric>sucker-welfare-1000</metric>
-    <enumeratedValueSet variable="cheater">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sucker">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token%">
-      <value value="77"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="benefit">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger-memory-cap">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cost">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="evolve?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="population">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="replacement-rate">
-      <value value="0.01"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="cheater-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="1111"/>
-    <metric>cheater-welfare-1000</metric>
-    <enumeratedValueSet variable="cheater">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sucker">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token%">
-      <value value="77"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="benefit">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger-memory-cap">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cost">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="evolve?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="population">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="replacement-rate">
-      <value value="0.01"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="grudger-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="1111"/>
-    <metric>grudger-welfare-1000</metric>
-    <enumeratedValueSet variable="cheater">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sucker">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token%">
-      <value value="77"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="benefit">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger-memory-cap">
-      <value value="0"/>
-      <value value="10"/>
-      <value value="20"/>
-      <value value="30"/>
-      <value value="40"/>
-      <value value="50"/>
-      <value value="60"/>
-      <value value="70"/>
-      <value value="80"/>
-      <value value="90"/>
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cost">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="evolve?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="population">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="replacement-rate">
-      <value value="0.01"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="token-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="1111"/>
-    <metric>token-welfare-1000</metric>
-    <enumeratedValueSet variable="cheater">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sucker">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token%">
-      <value value="0"/>
-      <value value="10"/>
-      <value value="20"/>
-      <value value="30"/>
-      <value value="40"/>
-      <value value="50"/>
-      <value value="60"/>
-      <value value="70"/>
-      <value value="80"/>
-      <value value="90"/>
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="benefit">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger-memory-cap">
-      <value value="50"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cost">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="evolve?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="population">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="replacement-rate">
-      <value value="0.01"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token">
-      <value value="true"/>
-    </enumeratedValueSet>
-  </experiment>
   <experiment name="complete-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
@@ -1366,6 +1190,44 @@ NetLogo 6.4.0
     </enumeratedValueSet>
   </experiment>
   <experiment name="complete-p100-c2b5-e1% streamlined" repetitions="25" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1000"/>
+    <exitCondition>( not sucker ) and ( not cheater ) and ( grudger-memory-cap = 0 ) and ( token% = 0 )</exitCondition>
+    <metric>sucker-welfare</metric>
+    <metric>cheater-welfare</metric>
+    <metric>grudger-welfare</metric>
+    <metric>token-welfare</metric>
+    <metric>total-welfare</metric>
+    <metric>count turtles with [ my-strategy = "sucker" ]</metric>
+    <metric>count turtles with [ my-strategy = "cheater" ]</metric>
+    <metric>count turtles with [ my-strategy = "grudger" ]</metric>
+    <metric>count turtles with [ my-strategy = "token" ]</metric>
+    <enumeratedValueSet variable="cheater">
+      <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sucker">
+      <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="grudger-memory-cap">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="token%">
+      <value value="0"/>
+      <value value="20"/>
+      <value value="40"/>
+      <value value="60"/>
+      <value value="80"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="complete-p100-c2b5-e1% streamlined - at1000" repetitions="100" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="1000"/>

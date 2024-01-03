@@ -1,84 +1,48 @@
-;Dawkins 1976 "scratch back", Trivers 1971
-; see interpretation issues with evolutionary fitness x individual satisfaction
-; review https://www.cambridge.org/core/journals/journal-of-institutional-economics/article/abs/money-and-its-institutional-substitutes-the-role-of-exchange-institutions-in-human-cooperation/F3CEF9F728283724A6A6852E8B14DD75
-; MESO and institutions/coop https://www.sciencedirect.com/science/article/abs/pii/S105353570900064X
-
-; MODEL PENDING/CHECK:
-; Token strategy: if all holders have token, there should be no trades
-        ; strange behavior in token swap? undetermined strategy?
-        ; alternative: quantified tokens. should generate concentration? TEST
-
-; new turtles created with average fitness.
-     ; alternative of resetting total fitness at every round privileges cheaters (doesn't leave enough time to accumulate?)
-
-
-; questions for parameter-sweeping:
-; ok, suckers are vulnerable to cheater invasion. cheaters are vulnerable to grudger invasion, for certain parameters (-check: benefit/cost > than..
-; but! grudger total welfare higher than token!
-; RQ: under which circumstances/parameters is a grudger population vulnerable to token invasion? and under which circumstances is this welfare-enhancing?
-; without grudger memory cap: always outperforms? or depends on structure of tokens?
-; with grudger memory cap - exogenous explanation, ok. still, how does token structure affect welfare? and what are some constraints on which token routines might evolve?
-; then compare token with reputation
-; then spatialize
+; producer has good: can consume or transfer(help)
+; consumer values good more
 ;
-;
-;
-; also ofcourse review structured populations, Smaldino 2017; x division of labor as a modifier to conclusions above
 
-
-; review Nowak ESS RD AD:
-;Figure 2.
-;Evolutionary dynamics of cooperators and defectors. The red and blue arrows indicate
-;selection favoring defectors and cooperators, respectively. (a) Without any mechanism for
-;the evolution of cooperation, defectors dominate. A mechanism for evolution of cooperation
-;can allow cooperators to be the evolutionarily stable strategy (ESS), risk dominant (RD) or
-;advantageous (AD) in comparison with defectors. (b) Cooperators are ESS if they can resist
-;invasion by defectors. (c) Cooperators are RD if the basin of attraction of defectors is less
-;than 1/2. (d) Cooperators are AD if the basin of attraction of defectors is less that 1/3. In this
-;case, the fixation probability of a single cooperator in a finite population of defectors is
-;greater than the inverse of the population size (for weak selection). (e) Some mechanisms
-;allow cooperators to dominate defectors.
-
-
-; finally: in this framework, money IS a social norm? x araújo 2004
-
-
-globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-welfare grudger-welfare token-welfare
+globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-welfare grudger-welfare token-welfare memory-welfare
   total-welfare-per-tick
   avg-welfare-per-tick
   sucker-welfare-per-tick
   cheater-welfare-per-tick
   grudger-welfare-per-tick
   token-welfare-per-tick
+  memory-welfare-per-tick
   total-welfare-1000
   avg-welfare-1000
   sucker-welfare-1000
   cheater-welfare-1000
   grudger-welfare-1000
   token-welfare-1000
+  memory-welfare-1000
   total-welfare-10000
   avg-welfare-10000
   sucker-welfare-10000
   cheater-welfare-10000
   grudger-welfare-10000
   token-welfare-10000
+  memory-welfare-10000
 
 ]
 
-turtles-own [ has-token? my-strategy fitness blacklist ]
+turtles-own [ has-token? my-strategy fitness blacklist my-balance ]
 
 to setup
   clear-all
-  if ( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ) [ error "No strategy selected. Execution stopped." stop ]
+  if ( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ) and ( not memory )[ error "No strategy selected. Execution stopped." stop ]
   set active-strategies [ ]
   if sucker [ set active-strategies lput "sucker" active-strategies ]
   if cheater [ set active-strategies lput "cheater" active-strategies ]
   if grudger [ set active-strategies lput "grudger" active-strategies ]
   if token [ set active-strategies lput "token" active-strategies ]
+  if memory [ set active-strategies lput "memory" active-strategies ]
 
   crt population [ right random 180 fd 13
     set fitness 0
     ifelse random 100 < token% [set has-token? true][set has-token? false]
+    if random 100 < uoa% [ set my-balance 1 ] ; "units of account provided at first"
     set my-strategy one-of active-strategies
     set blacklist []
     color-me
@@ -94,6 +58,7 @@ to color-me
   if my-strategy = "cheater" [ set color grey ]
   if my-strategy = "grudger" [ set color orange ]
   if my-strategy = "token" [ set color blue ]
+  if my-strategy = "memory" [ set color violet ]
 end
 
 to shape-me
@@ -117,6 +82,7 @@ to go
   set cheater-welfare sum [fitness] of turtles with [my-strategy = "cheater"]
   set grudger-welfare sum [fitness] of turtles with [my-strategy = "grudger"]
   set token-welfare sum [fitness] of turtles with [my-strategy = "token"]
+  set memory-welfare sum [fitness] of turtles with [my-strategy = "memory"]
 
   set total-welfare sum [fitness] of turtles
   set avg-welfare total-welfare / population
@@ -140,7 +106,7 @@ to interact
     groom
   ]
     if my-strategy = "cheater" [
-    not-groom ;implies received groomed but did not reciprocate
+    not-groom
   ]
     if my-strategy = "grudger" [ ;nice tit for tat. evaluate grim trigger?
     ifelse not member? item 0 [other-end] of my-links blacklist [ groom ] [ not-groom ]
@@ -151,11 +117,17 @@ to interact
       ask item 0 [other-end] of my-links [set has-token? false]
       set has-token? true
     ]
-    [ not-groom ] ;RECHECK TOKEN BEHAVIOR WITH 0 tokens
-    ; implement token-swap (self-myself)?
+    [ not-groom ]
   ]
-  ; other variations of token? actual swap interaction; unconditional groom-for-token (even if already has token)? add quantifiable/addable tokens?
-  ; add reciprocator? only groom whitelist? need nice trigger?
+
+  if ( my-strategy = "memory" ) [
+    ifelse ( [my-balance] of item 0 [other-end] of my-links > 0 ) [ ;show "they gots$"
+      groom
+      ask item 0 [other-end] of my-links [set my-balance my-balance - 1]
+    ] [not-groom]
+
+  ]
+
 end
 
 to groom
@@ -163,9 +135,11 @@ to groom
   ask link-neighbors [
     set fitness fitness + benefit
   ]
+  set my-balance my-balance + 1
 end
 
 to not-groom
+  set my-balance my-balance - 1
   ask link-neighbors [
     if not member? myself blacklist [
       set blacklist fput myself blacklist
@@ -183,6 +157,7 @@ to report-welfare-per-tick
   set cheater-welfare-per-tick cheater-welfare / ticks
   set grudger-welfare-per-tick grudger-welfare / ticks
   set token-welfare-per-tick token-welfare / ticks
+  set memory-welfare-per-tick memory-welfare / ticks
 
 end
 
@@ -194,6 +169,7 @@ to report1000
   set cheater-welfare-1000 cheater-welfare
   set grudger-welfare-1000 grudger-welfare
   set token-welfare-1000 token-welfare
+  set memory-welfare-1000 memory-welfare
 end
 
 to report10000
@@ -202,7 +178,7 @@ to report10000
   set sucker-welfare-10000 sucker-welfare
   set cheater-welfare-10000 cheater-welfare
   set grudger-welfare-10000 grudger-welfare
-  set token-welfare-10000 token-welfare
+  set memory-welfare-10000 memory-welfare
 end
 
 
@@ -345,7 +321,7 @@ SWITCH
 243
 cheater
 cheater
-0
+1
 1
 -1000
 
@@ -356,7 +332,7 @@ SWITCH
 289
 grudger
 grudger
-1
+0
 1
 -1000
 
@@ -387,7 +363,7 @@ INPUTBOX
 210
 100
 benefit
-5.0
+10.0
 1
 0
 Number
@@ -407,7 +383,7 @@ PLOT
 177
 1181
 327
-aggregate welfare of strategy
+per-agent welfare of strategy
 NIL
 NIL
 0.0
@@ -444,6 +420,7 @@ PENS
 "\"cheaters\"" 1.0 0 -7500403 true "" "plot count turtles with [ my-strategy = \"cheater\" ]"
 "\"grudgers\"" 1.0 0 -955883 true "" "plot count turtles with [ my-strategy = \"grudger\" ]"
 "\"token\"" 1.0 0 -13345367 true "" "plot count turtles with [ my-strategy = \"token\" ]"
+"memory" 1.0 0 -8630108 true "" "plot count turtles with [ my-strategy = \"memory\" ]"
 
 MONITOR
 1327
@@ -804,13 +781,50 @@ PENS
 SWITCH
 61
 413
-178
+192
 446
-ledger-koch
-ledger-koch
+memory
+memory
 0
 1
 -1000
+
+SLIDER
+39
+441
+211
+474
+uoa%
+uoa%
+0
+100
+100.0
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+1237
+343
+1295
+388
+memory
+memory-welfare-per-tick
+1
+1
+11
+
+MONITOR
+1403
+358
+1465
+403
+memory
+memory-welfare-1000
+1
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
