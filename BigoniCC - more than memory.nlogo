@@ -58,7 +58,7 @@ to color-me
   if my-strategy = "cheater" [ set color grey ]
   if my-strategy = "grudger" [ set color orange ]
   if my-strategy = "token" [ set color blue ]
-  if my-strategy = "memory" [ set color violet ]
+  if my-strategy = "memory" [ set color 107 ]
 end
 
 to shape-me
@@ -299,7 +299,7 @@ SWITCH
 243
 sucker
 sucker
-1
+0
 1
 -1000
 
@@ -321,7 +321,7 @@ SWITCH
 243
 cheater
 cheater
-1
+0
 1
 -1000
 
@@ -363,7 +363,7 @@ INPUTBOX
 210
 100
 benefit
-10.0
+5.0
 1
 0
 Number
@@ -383,7 +383,7 @@ PLOT
 177
 1181
 327
-per-agent welfare of strategy
+total welfare of strategies
 NIL
 NIL
 0.0
@@ -398,7 +398,8 @@ PENS
 "cheater" 1.0 0 -7500403 true "" "plot cheater-welfare"
 "grudger" 1.0 0 -955883 true "" "plot grudger-welfare"
 "token" 1.0 0 -13345367 true "" "plot token-welfare"
-"total" 1.0 0 -16777216 true "" "plot total-welfare"
+"total" 1.0 0 -16777216 true "" ";plot total-welfare"
+"memory" 1.0 0 -8020277 true "" "plot memory-welfare"
 
 PLOT
 698
@@ -420,7 +421,7 @@ PENS
 "\"cheaters\"" 1.0 0 -7500403 true "" "plot count turtles with [ my-strategy = \"cheater\" ]"
 "\"grudgers\"" 1.0 0 -955883 true "" "plot count turtles with [ my-strategy = \"grudger\" ]"
 "\"token\"" 1.0 0 -13345367 true "" "plot count turtles with [ my-strategy = \"token\" ]"
-"memory" 1.0 0 -8630108 true "" "plot count turtles with [ my-strategy = \"memory\" ]"
+"memory" 1.0 0 -8020277 true "" "plot count turtles with [ my-strategy = \"memory\" ]"
 
 MONITOR
 1327
@@ -475,7 +476,7 @@ token%
 token%
 0
 100
-60.0
+22.0
 1
 1
 NIL
@@ -674,7 +675,7 @@ grudger-memory-cap
 grudger-memory-cap
 0
 population
-11.0
+45.0
 1
 1
 NIL
@@ -798,7 +799,7 @@ uoa%
 uoa%
 0
 100
-100.0
+57.0
 1
 1
 NIL
