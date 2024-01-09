@@ -2,28 +2,28 @@
 ; consumer values good more
 ;
 
-globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-welfare grudger-welfare token-welfare memory-welfare
+globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-welfare grudger-welfare token-welfare RLM-welfare
   total-welfare-per-tick
   avg-welfare-per-tick
   sucker-welfare-per-tick
   cheater-welfare-per-tick
   grudger-welfare-per-tick
   token-welfare-per-tick
-  memory-welfare-per-tick
+  RLM-welfare-per-tick
   total-welfare-1000
   avg-welfare-1000
   sucker-welfare-1000
   cheater-welfare-1000
   grudger-welfare-1000
   token-welfare-1000
-  memory-welfare-1000
+  RLM-welfare-1000
   total-welfare-10000
   avg-welfare-10000
   sucker-welfare-10000
   cheater-welfare-10000
   grudger-welfare-10000
   token-welfare-10000
-  memory-welfare-10000
+  RLM-welfare-10000
 
 ]
 
@@ -31,13 +31,13 @@ turtles-own [ has-token? my-strategy fitness blacklist my-balance ]
 
 to setup
   clear-all
-  if ( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ) and ( not memory )[ error "No strategy selected. Execution stopped." stop ]
+  if ( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ) and ( not RLM )[ error "No strategy selected. Execution stopped." stop ]
   set active-strategies [ ]
   if sucker [ set active-strategies lput "sucker" active-strategies ]
   if cheater [ set active-strategies lput "cheater" active-strategies ]
   if grudger [ set active-strategies lput "grudger" active-strategies ]
   if token [ set active-strategies lput "token" active-strategies ]
-  if memory [ set active-strategies lput "memory" active-strategies ]
+  if RLM [ set active-strategies lput "RLM" active-strategies ]
 
   crt population [ right random 180 fd 13
     set fitness 0
@@ -58,17 +58,14 @@ to color-me
   if my-strategy = "cheater" [ set color grey ]
   if my-strategy = "grudger" [ set color orange ]
   if my-strategy = "token" [ set color blue ]
-  if my-strategy = "memory" [ set color 107 ]
+  if my-strategy = "RLM" [ set color violet ]
 end
 
 to shape-me
   ifelse has-token? [ set shape "star" ][set shape "default"]
-
 end
 
-
 to go
-
   ask links [ die ]
 
   ask turtles [
@@ -82,7 +79,7 @@ to go
   set cheater-welfare sum [fitness] of turtles with [my-strategy = "cheater"]
   set grudger-welfare sum [fitness] of turtles with [my-strategy = "grudger"]
   set token-welfare sum [fitness] of turtles with [my-strategy = "token"]
-  set memory-welfare sum [fitness] of turtles with [my-strategy = "memory"]
+  set RLM-welfare sum [fitness] of turtles with [my-strategy = "RLM"]
 
   set total-welfare sum [fitness] of turtles
   set avg-welfare total-welfare / population
@@ -120,7 +117,7 @@ to interact
     [ not-groom ]
   ]
 
-  if ( my-strategy = "memory" ) [
+  if ( my-strategy = "RLM" ) [
     ifelse ( [my-balance] of item 0 [other-end] of my-links > 0 ) [ ;show "they gots$"
       groom
       ask item 0 [other-end] of my-links [set my-balance my-balance - 1]
@@ -139,7 +136,7 @@ to groom
 end
 
 to not-groom
-  set my-balance my-balance - 1
+  ;set my-balance my-balance - 1
   ask link-neighbors [
     if not member? myself blacklist [
       set blacklist fput myself blacklist
@@ -157,7 +154,7 @@ to report-welfare-per-tick
   set cheater-welfare-per-tick cheater-welfare / ticks
   set grudger-welfare-per-tick grudger-welfare / ticks
   set token-welfare-per-tick token-welfare / ticks
-  set memory-welfare-per-tick memory-welfare / ticks
+  set RLM-welfare-per-tick RLM-welfare / ticks
 
 end
 
@@ -169,7 +166,7 @@ to report1000
   set cheater-welfare-1000 cheater-welfare
   set grudger-welfare-1000 grudger-welfare
   set token-welfare-1000 token-welfare
-  set memory-welfare-1000 memory-welfare
+  set RLM-welfare-1000 RLM-welfare
 end
 
 to report10000
@@ -178,13 +175,15 @@ to report10000
   set sucker-welfare-10000 sucker-welfare
   set cheater-welfare-10000 cheater-welfare
   set grudger-welfare-10000 grudger-welfare
-  set memory-welfare-10000 memory-welfare
+  set RLM-welfare-10000 RLM-welfare
 end
-
-
 
 to token-swap [ A B ]; risk of double-swap with two interactions per turn? - implies some DC or?
   ;tokens disappearing!
+end
+
+to uoa-swap
+  ; see Bigoni CC 2020 x Kocherlakota 98. Clarify which is social ledger/reputation/memory?
 end
 
 to evolve-all
@@ -310,7 +309,7 @@ SWITCH
 365
 token
 token
-0
+1
 1
 -1000
 
@@ -321,7 +320,7 @@ SWITCH
 243
 cheater
 cheater
-0
+1
 1
 -1000
 
@@ -332,7 +331,7 @@ SWITCH
 289
 grudger
 grudger
-0
+1
 1
 -1000
 
@@ -399,7 +398,7 @@ PENS
 "grudger" 1.0 0 -955883 true "" "plot grudger-welfare"
 "token" 1.0 0 -13345367 true "" "plot token-welfare"
 "total" 1.0 0 -16777216 true "" ";plot total-welfare"
-"memory" 1.0 0 -8020277 true "" "plot memory-welfare"
+"RLM" 1.0 0 -8630108 true "" "plot RLM-welfare"
 
 PLOT
 698
@@ -421,7 +420,7 @@ PENS
 "\"cheaters\"" 1.0 0 -7500403 true "" "plot count turtles with [ my-strategy = \"cheater\" ]"
 "\"grudgers\"" 1.0 0 -955883 true "" "plot count turtles with [ my-strategy = \"grudger\" ]"
 "\"token\"" 1.0 0 -13345367 true "" "plot count turtles with [ my-strategy = \"token\" ]"
-"memory" 1.0 0 -8020277 true "" "plot count turtles with [ my-strategy = \"memory\" ]"
+"RLM" 1.0 0 -8630108 true "" "plot count turtles with [ my-strategy = \"RLM\" ]"
 
 MONITOR
 1327
@@ -476,7 +475,7 @@ token%
 token%
 0
 100
-22.0
+75.0
 1
 1
 NIL
@@ -537,7 +536,7 @@ at 10000 ticks
 MONITOR
 1456
 182
-1506
+1523
 227
 total
 total-welfare-1000
@@ -546,10 +545,10 @@ total-welfare-1000
 11
 
 MONITOR
-1383
-133
-1450
-178
+1381
+135
+1441
+180
 sucker
 sucker-welfare-1000
 1
@@ -557,10 +556,10 @@ sucker-welfare-1000
 11
 
 MONITOR
-1384
-180
-1450
-225
+1382
+182
+1441
+227
 cheater
 cheater-welfare-1000
 1
@@ -568,10 +567,10 @@ cheater-welfare-1000
 11
 
 MONITOR
-1385
-229
-1451
-274
+1383
+231
+1442
+276
 grudger
 grudger-welfare-1000
 1
@@ -579,10 +578,10 @@ grudger-welfare-1000
 11
 
 MONITOR
-1384
-277
-1450
-322
+1382
+279
+1445
+324
 token
 token-welfare-1000
 1
@@ -647,7 +646,7 @@ token-welfare-10000
 MONITOR
 1456
 229
-1506
+1526
 274
 average
 avg-welfare-1000
@@ -684,7 +683,7 @@ HORIZONTAL
 MONITOR
 1228
 130
-1285
+1278
 175
 sucker
 sucker-welfare-per-tick
@@ -695,7 +694,7 @@ sucker-welfare-per-tick
 MONITOR
 1229
 181
-1286
+1279
 226
 cheater
 cheater-welfare-per-tick
@@ -706,7 +705,7 @@ cheater-welfare-per-tick
 MONITOR
 1229
 233
-1286
+1279
 278
 grudger
 grudger-welfare-per-tick
@@ -717,7 +716,7 @@ grudger-welfare-per-tick
 MONITOR
 1230
 281
-1287
+1280
 326
 token
 token-welfare-per-tick
@@ -736,21 +735,21 @@ per tick
 1
 
 MONITOR
-1294
-182
-1344
-227
+1283
+181
+1333
+226
 total
 total-welfare-per-tick
-17
+1
 1
 11
 
 MONITOR
-1294
-233
-1344
-278
+1283
+232
+1333
+277
 average
 avg-welfare-per-tick
 1
@@ -778,14 +777,15 @@ PENS
 "cheater" 1.0 0 -7500403 true "" "plot cheater-welfare-per-tick"
 "grudger" 1.0 0 -955883 true "" "plot grudger-welfare-per-tick"
 "token" 1.0 0 -13345367 true "" "plot token-welfare-per-tick"
+"RLM" 1.0 0 -8630108 true "" "plot RLM-welfare-per-tick"
 
 SWITCH
 61
 413
 192
 446
-memory
-memory
+RLM
+RLM
 0
 1
 -1000
@@ -799,30 +799,30 @@ uoa%
 uoa%
 0
 100
-57.0
+44.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-1237
-343
-1295
-388
-memory
-memory-welfare-per-tick
+1229
+327
+1279
+372
+RLM
+RLM-welfare-per-tick
 1
 1
 11
 
 MONITOR
-1403
-358
-1465
-403
-memory
-memory-welfare-1000
+1382
+328
+1445
+373
+RLM
+RLM-welfare-1000
 1
 1
 11
