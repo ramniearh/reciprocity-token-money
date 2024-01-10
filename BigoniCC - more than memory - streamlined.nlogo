@@ -1,6 +1,6 @@
-; producer has good: can consume or transfer(help)
-; consumer values good more
-;
+; Bigoni et al 2020: "producer has good: can consume or transfer(help). consumer values good more"
+; test version, undocumented.
+; to do: streamline, make token and RLM strategies more precise by limiting mechanisms to each strategy
 
 globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-welfare grudger-welfare token-welfare RLM-welfare
   total-welfare-per-tick
@@ -18,7 +18,6 @@ globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-wel
   token-welfare-1000
   RLM-welfare-1000
   total-welfare-10000
-
 ]
 
 turtles-own [ has-token? my-strategy fitness blacklist my-balance ]
@@ -36,12 +35,11 @@ to setup
   crt population [ right random 180 fd 13
     set fitness 0
     ifelse random 100 < token% [set has-token? true][set has-token? false]
-    ;if random 100 < uoa% [ set my-balance 1 ] ; "reputational units of account provided at first"
     set my-strategy one-of active-strategies
     set blacklist []
-    personal-index-me
     color-me
     shape-me
+    if RLM [ personal-index-me ]
   ]
 
   reset-ticks
@@ -54,20 +52,15 @@ to color-me
   if my-strategy = "grudger" [ set color orange ]
   if my-strategy = "token" [ set color blue ]
   if my-strategy = "RLM" [ set color violet ]
-
 end
 
 to shape-me
-  if token [
-    ifelse has-token? [ set shape "star" ][set shape "default"]
-  ]
+    ifelse has-token? [ set shape "star" ][ set shape "default" ]
 end
 
 to personal-index-me
-  if RLM [
     set my-balance one-of [ 0 1 ]
     set size log ( my-balance + 2 ) 2
-  ]
 end
 
 
@@ -75,10 +68,9 @@ to go
   ask links [ die ]
 
   ask turtles [
-    ;set fitness 0 ; reset all fitnesses! testing
     find-partner
     interact
-    shape-me
+    if RLM [ shape-me ]
   ]
 
   set sucker-welfare sum [fitness] of turtles with [my-strategy = "sucker"]
@@ -95,7 +87,6 @@ to go
   tick
   report-welfare-per-tick
   if ticks = 1000 [report1000]
-  ;if ticks = 10000 [report10000]
 end
 
 to find-partner
@@ -114,11 +105,11 @@ to interact
     if my-strategy = "grudger" [ ; "personalistic" grim trigger? evaluate nice tit for tat?
     ifelse not member? item 0 [other-end] of my-links blacklist [ groom ] [ not-groom ]
   ]
-    if ( my-strategy = "token" ) and has-token? = false [ ;"conditional hastoken"
+    if ( my-strategy = "token" ) and has-token? = false [ ; "conditional hastoken" - agent only trades in case it doesn't already have a token, and counterpart does
       ifelse [has-token?] of item 0 [other-end] of my-links = true [
       groom
-      ; Token addition:
-      ask item 0 [other-end] of my-links [set has-token? false]
+      ; Adding Token mechanism:
+      ask link-neighbors [set has-token? false]
       set has-token? true
     ]
     [ not-groom ]
@@ -126,10 +117,11 @@ to interact
   if ( my-strategy = "RLM" ) [ ; Bigoni MMM 2020 - supplementary material p. 10
     ifelse [my-balance] of item 0 [other-end] of my-links > 0   [
       groom
-      ;RLM addition:
+      ; Adding RLM mechanism:
       set my-balance my-balance + 1
-      ask item 0 [other-end] of my-links [set my-balance my-balance - 1]
-    ][not-groom]
+      ask link-neighbors [ set my-balance my-balance - 1 ]
+    ]
+    [not-groom]
   ]
 end
 
@@ -141,7 +133,6 @@ to groom
 end
 
 to not-groom
-  ;set my-balance my-balance - 1
   ask link-neighbors [
     if not member? myself blacklist [
       set blacklist fput myself blacklist
@@ -177,12 +168,12 @@ to evolve-all
   ask min-n-of n turtles [ fitness ] [ die ]
   create-turtles n [ right random 180 fd random 13
     set fitness avg-welfare ;new turtles have average fitness. alternatively, reset and recalculate fitness?
-    ifelse random 100 < token% [set has-token? true][set has-token? false] ;REVIEW
+    ifelse random 100 < token% [set has-token? true][set has-token? false] ;REVIEW - new token creation
     set my-strategy one-of active-strategies
     set blacklist []
-    personal-index-me
     color-me
     shape-me
+    if RLM [ personal-index-me ]
   ]
 end
 @#$#@#$#@
@@ -282,7 +273,7 @@ SWITCH
 243
 sucker
 sucker
-0
+1
 1
 -1000
 
@@ -315,7 +306,7 @@ SWITCH
 289
 grudger
 grudger
-0
+1
 1
 -1000
 
@@ -377,11 +368,11 @@ true
 true
 "" ""
 PENS
-"sucker" 1.0 0 -10899396 true "" "if count turtles with [my-strategy = \"sucker\"] > 0 [ plot (sucker-welfare / count turtles with [my-strategy = \"sucker\"] ) ]"
-"cheater" 1.0 0 -7500403 true "" "plot cheater-welfare"
-"grudger" 1.0 0 -955883 true "" "plot grudger-welfare"
-"token" 1.0 0 -13345367 true "" "plot token-welfare"
-"total" 1.0 0 -16777216 true "" ";plot total-welfare"
+"sucker" 1.0 0 -10899396 true "" "plot sucker-welfare "
+"cheater" 1.0 0 -7500403 true "" "plot cheater-welfare "
+"grudger" 1.0 0 -955883 true "" "plot grudger-welfare "
+"token" 1.0 0 -13345367 true "" "plot token-welfare "
+"total" 1.0 0 -16777216 true "" "plot total-welfare "
 "RLM" 1.0 0 -8630108 true "" "plot RLM-welfare"
 
 PLOT
@@ -582,7 +573,7 @@ grudger-memory-cap
 grudger-memory-cap
 0
 population
-100.0
+0.0
 1
 1
 NIL
@@ -747,8 +738,8 @@ TEXTBOX
 130
 420
 280
-438
-\"bigoni-memory\"
+446
+\"bigoni-memory\":\nreputation-ledger
 10
 0.0
 1
@@ -767,9 +758,9 @@ KLRM
 TEXTBOX
 129
 460
-267
+253
 486
-\"kocherlakota-memory\" - check informational intensity
+\"kocherlakota-memory\" - (not implemented)
 10
 0.0
 1
