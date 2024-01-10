@@ -18,12 +18,6 @@ globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-wel
   token-welfare-1000
   RLM-welfare-1000
   total-welfare-10000
-  avg-welfare-10000
-  sucker-welfare-10000
-  cheater-welfare-10000
-  grudger-welfare-10000
-  token-welfare-10000
-  RLM-welfare-10000
 
 ]
 
@@ -42,9 +36,10 @@ to setup
   crt population [ right random 180 fd 13
     set fitness 0
     ifelse random 100 < token% [set has-token? true][set has-token? false]
-    if random 100 < uoa% [ set my-balance 1 ] ; "units of account provided at first"
+    ;if random 100 < uoa% [ set my-balance 1 ] ; "reputational units of account provided at first"
     set my-strategy one-of active-strategies
     set blacklist []
+    personal-index-me
     color-me
     shape-me
   ]
@@ -59,11 +54,22 @@ to color-me
   if my-strategy = "grudger" [ set color orange ]
   if my-strategy = "token" [ set color blue ]
   if my-strategy = "RLM" [ set color violet ]
+
 end
 
 to shape-me
-  ifelse has-token? [ set shape "star" ][set shape "default"]
+  if token [
+    ifelse has-token? [ set shape "star" ][set shape "default"]
+  ]
 end
+
+to personal-index-me
+  if RLM [
+    set my-balance one-of [ 0 1 ]
+    set size log ( my-balance + 2 ) 2
+  ]
+end
+
 
 to go
   ask links [ die ]
@@ -89,7 +95,7 @@ to go
   tick
   report-welfare-per-tick
   if ticks = 1000 [report1000]
-  if ticks = 10000 [report10000]
+  ;if ticks = 10000 [report10000]
 end
 
 to find-partner
@@ -105,34 +111,33 @@ to interact
     if my-strategy = "cheater" [
     not-groom
   ]
-    if my-strategy = "grudger" [ ;nice tit for tat. evaluate grim trigger?
+    if my-strategy = "grudger" [ ; "personalistic" grim trigger? evaluate nice tit for tat?
     ifelse not member? item 0 [other-end] of my-links blacklist [ groom ] [ not-groom ]
   ]
     if ( my-strategy = "token" ) and has-token? = false [ ;"conditional hastoken"
       ifelse [has-token?] of item 0 [other-end] of my-links = true [
       groom
+      ; Token addition:
       ask item 0 [other-end] of my-links [set has-token? false]
       set has-token? true
     ]
     [ not-groom ]
   ]
-
-  if ( my-strategy = "RLM" ) [
-    ifelse ( [my-balance] of item 0 [other-end] of my-links > 0 ) [ ;show "they gots$"
+  if ( my-strategy = "RLM" ) [ ; Bigoni MMM 2020 - supplementary material p. 10
+    ifelse [my-balance] of item 0 [other-end] of my-links > 0   [
       groom
+      ;RLM addition:
+      set my-balance my-balance + 1
       ask item 0 [other-end] of my-links [set my-balance my-balance - 1]
-    ] [not-groom]
-
+    ][not-groom]
   ]
-
 end
 
 to groom
   set fitness fitness - cost
-  ask link-neighbors [
+  ask link-neighbors [ ; confirm formulation in relation to item 0 other-end
     set fitness fitness + benefit
   ]
-  set my-balance my-balance + 1
 end
 
 to not-groom
@@ -155,9 +160,7 @@ to report-welfare-per-tick
   set grudger-welfare-per-tick grudger-welfare / ticks
   set token-welfare-per-tick token-welfare / ticks
   set RLM-welfare-per-tick RLM-welfare / ticks
-
 end
-
 
 to report1000
   set total-welfare-1000 total-welfare
@@ -169,37 +172,18 @@ to report1000
   set RLM-welfare-1000 RLM-welfare
 end
 
-to report10000
-  set total-welfare-10000 total-welfare
-  set avg-welfare-10000 avg-welfare
-  set sucker-welfare-10000 sucker-welfare
-  set cheater-welfare-10000 cheater-welfare
-  set grudger-welfare-10000 grudger-welfare
-  set RLM-welfare-10000 RLM-welfare
-end
-
-to token-swap [ A B ]; risk of double-swap with two interactions per turn? - implies some DC or?
-  ;tokens disappearing!
-end
-
-to uoa-swap
-  ; see Bigoni CC 2020 x Kocherlakota 98. Clarify which is social ledger/reputation/memory?
-end
-
 to evolve-all
   let n replacement-rate * population
-
   ask min-n-of n turtles [ fitness ] [ die ]
   create-turtles n [ right random 180 fd random 13
     set fitness avg-welfare ;new turtles have average fitness. alternatively, reset and recalculate fitness?
-    ;set fitness 0;testing
     ifelse random 100 < token% [set has-token? true][set has-token? false] ;REVIEW
     set my-strategy one-of active-strategies
     set blacklist []
+    personal-index-me
     color-me
     shape-me
   ]
-
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -272,7 +256,7 @@ NIL
 NIL
 NIL
 NIL
-1
+0
 
 BUTTON
 475
@@ -289,7 +273,7 @@ NIL
 NIL
 NIL
 NIL
-1
+0
 
 SWITCH
 20
@@ -320,7 +304,7 @@ SWITCH
 243
 cheater
 cheater
-1
+0
 1
 -1000
 
@@ -331,7 +315,7 @@ SWITCH
 289
 grudger
 grudger
-1
+0
 1
 -1000
 
@@ -393,7 +377,7 @@ true
 true
 "" ""
 PENS
-"sucker" 1.0 0 -10899396 true "" "plot sucker-welfare "
+"sucker" 1.0 0 -10899396 true "" "if count turtles with [my-strategy = \"sucker\"] > 0 [ plot (sucker-welfare / count turtles with [my-strategy = \"sucker\"] ) ]"
 "cheater" 1.0 0 -7500403 true "" "plot cheater-welfare"
 "grudger" 1.0 0 -955883 true "" "plot grudger-welfare"
 "token" 1.0 0 -13345367 true "" "plot token-welfare"
@@ -423,10 +407,10 @@ PENS
 "RLM" 1.0 0 -8630108 true "" "plot count turtles with [ my-strategy = \"RLM\" ]"
 
 MONITOR
-1327
-29
-1412
-74
+830
+492
+915
+537
 NIL
 total-welfare
 1
@@ -434,10 +418,10 @@ total-welfare
 11
 
 MONITOR
-1416
-29
-1496
-74
+919
+492
+999
+537
 NIL
 avg-welfare
 1
@@ -456,10 +440,10 @@ replacement-rate
 Number
 
 MONITOR
-1250
-29
-1322
-74
+753
+492
+825
+537
 NIL
 count turtles
 17
@@ -475,7 +459,7 @@ token%
 token%
 0
 100
-75.0
+50.0
 1
 1
 NIL
@@ -493,10 +477,10 @@ evolve?
 -1000
 
 MONITOR
-1505
-29
-1601
-74
+1008
+492
+1104
+537
 circulating tokens
 count turtles with [has-token? = true]
 0
@@ -504,40 +488,30 @@ count turtles with [has-token? = true]
 11
 
 TEXTBOX
-1342
-92
-1529
-120
+1313
+40
+1500
+68
 (TOTAL) WELFARE REPORTERS
 11
 0.0
 1
 
 TEXTBOX
-1385
-118
-1535
-136
+1357
+57
+1507
+75
 at 1000 ticks
 11
 0.0
 1
 
-TEXTBOX
-1551
-116
-1701
-134
-at 10000 ticks
-11
-0.0
-1
-
 MONITOR
-1456
-182
-1506
-227
+1428
+121
+1495
+166
 total
 total-welfare-1000
 1
@@ -545,10 +519,10 @@ total-welfare-1000
 11
 
 MONITOR
-1383
-133
-1433
-178
+1353
+74
+1413
+119
 sucker
 sucker-welfare-1000
 1
@@ -556,10 +530,10 @@ sucker-welfare-1000
 11
 
 MONITOR
-1384
-180
-1434
-225
+1354
+121
+1413
+166
 cheater
 cheater-welfare-1000
 1
@@ -567,10 +541,10 @@ cheater-welfare-1000
 11
 
 MONITOR
-1385
-229
-1435
-274
+1355
+170
+1414
+215
 grudger
 grudger-welfare-1000
 1
@@ -578,10 +552,10 @@ grudger-welfare-1000
 11
 
 MONITOR
-1384
-277
-1434
-322
+1354
+218
+1417
+263
 token
 token-welfare-1000
 1
@@ -589,78 +563,12 @@ token-welfare-1000
 11
 
 MONITOR
-1625
-180
-1675
-225
-total
-total-welfare-10000
-1
-1
-11
-
-MONITOR
-1547
-130
-1616
-175
-sucker
-sucker-welfare-10000
-1
-1
-11
-
-MONITOR
-1547
-178
-1617
-223
-cheater
-cheater-welfare-10000
-1
-1
-11
-
-MONITOR
-1547
-226
-1617
-271
-grudger
-grudger-welfare-10000
-1
-1
-11
-
-MONITOR
-1547
-273
-1617
-318
-token
-token-welfare-10000
-1
-1
-11
-
-MONITOR
-1456
-229
-1506
-274
+1428
+168
+1498
+213
 average
 avg-welfare-1000
-1
-1
-11
-
-MONITOR
-1624
-229
-1674
-274
-average
-avg-welfare-10000
 1
 1
 11
@@ -674,17 +582,17 @@ grudger-memory-cap
 grudger-memory-cap
 0
 population
-45.0
+100.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-1228
-130
-1285
-175
+1200
+69
+1250
+114
 sucker
 sucker-welfare-per-tick
 1
@@ -692,10 +600,10 @@ sucker-welfare-per-tick
 11
 
 MONITOR
-1229
-181
-1286
-226
+1201
+120
+1251
+165
 cheater
 cheater-welfare-per-tick
 1
@@ -703,10 +611,10 @@ cheater-welfare-per-tick
 11
 
 MONITOR
-1229
-233
-1286
-278
+1201
+172
+1251
+217
 grudger
 grudger-welfare-per-tick
 1
@@ -714,10 +622,10 @@ grudger-welfare-per-tick
 11
 
 MONITOR
-1230
-281
-1280
-326
+1202
+220
+1252
+265
 token
 token-welfare-per-tick
 1
@@ -725,20 +633,20 @@ token-welfare-per-tick
 11
 
 TEXTBOX
-1234
-113
-1384
-131
+1206
+52
+1356
+70
 per tick
 11
 0.0
 1
 
 MONITOR
-1294
-182
-1344
-227
+1255
+120
+1305
+165
 total
 total-welfare-per-tick
 1
@@ -746,10 +654,10 @@ total-welfare-per-tick
 11
 
 MONITOR
-1294
-233
-1344
-278
+1255
+171
+1305
+216
 average
 avg-welfare-per-tick
 1
@@ -780,36 +688,21 @@ PENS
 "RLM" 1.0 0 -8630108 true "" "plot RLM-welfare-per-tick"
 
 SWITCH
-61
-413
-192
-446
+36
+410
+126
+443
 RLM
 RLM
 0
 1
 -1000
 
-SLIDER
-39
-441
-211
-474
-uoa%
-uoa%
-0
-100
-44.0
-1
-1
-NIL
-HORIZONTAL
-
 MONITOR
-1229
-327
-1279
-372
+1201
+266
+1251
+311
 RLM
 RLM-welfare-per-tick
 1
@@ -817,15 +710,69 @@ RLM-welfare-per-tick
 11
 
 MONITOR
-1384
-326
-1443
-371
+1354
+267
+1417
+312
 RLM
 RLM-welfare-1000
 1
 1
 11
+
+PLOT
+1200
+322
+1499
+481
+RLM "personal index" - total balance per strategy
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"total" 1.0 0 -16777216 true "" "plot sum [my-balance] of turtles"
+"suckers" 1.0 0 -10899396 true "" "plot sum [my-balance] of turtles with [ my-strategy = \"sucker\" ]"
+"cheaters" 1.0 0 -7500403 true "" "plot sum [my-balance] of turtles with [ my-strategy = \"cheater\" ]"
+"grudgers" 1.0 0 -955883 true "" "plot sum [my-balance] of turtles with [ my-strategy = \"grudger\" ]"
+"token" 1.0 0 -13345367 true "" "plot sum [my-balance] of turtles with [ my-strategy = \"token\" ]"
+"RLM" 1.0 0 -8630108 true "" "plot sum [my-balance] of turtles with [ my-strategy = \"RLM\" ]"
+
+TEXTBOX
+130
+420
+280
+438
+\"bigoni-memory\"
+10
+0.0
+1
+
+SWITCH
+36
+455
+126
+488
+KLRM
+KLRM
+1
+1
+-1000
+
+TEXTBOX
+129
+460
+267
+486
+\"kocherlakota-memory\" - check informational intensity
+10
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -3,7 +3,7 @@ library(here)
 library(janitor)
 
 df <- 
-  here("population 100 cost2 benefit 5 replacement 0.01", "token-reciprocity exp complete-p100-c2b5-e1 streamlined-table.csv") %>%
+  'C:/Users/eduar/OneDrive/Documentos/GitHub/reciprocity-token-money/BehaviorSpace/population 100 cost2 benefit 5 replacement 0.01/token-reciprocity exp complete-p100-c2b5-e1 streamlined-table.csv' %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%
   as_tibble() %>% 
@@ -12,6 +12,7 @@ df <-
 glimpse(df)
 
 data_1000 <- filter(df, x_step == 1000)
+view(data_1000)
 
 # Plot total payoffs with pure strategies after 1000 rounds
 
@@ -36,7 +37,7 @@ pure_token <- data_1000 %>%
   mutate(type = "token", order = 151:275)
 
 pure_1000 <- bind_rows(pure_sucker, pure_cheater, pure_grudger, pure_token)
-view(pure_1000)
+#view(pure_1000)
 
 ggplot(pure_1000, aes(x = order, y = total_welfare, color = type)) + 
   geom_point()
@@ -46,7 +47,7 @@ only_sucker_cheater_1000 <- data_1000 %>%
   filter(sucker == "true" & cheater == "true" & grudger_memory == 0 & token_share == 0) %>% 
   select(x_run_number, total_welfare, sucker_welfare, cheater_welfare) %>%
   mutate(type = "sucker+cheater", order = 276:300)
-view(only_sucker_cheater_1000)
+#view(only_sucker_cheater_1000)
 
 ggplot(only_sucker_cheater_1000, aes(x = x_run_number, y = total_welfare, color = type)) + 
   geom_point()
@@ -56,7 +57,7 @@ only_cheater_grudger_1000 <- data_1000 %>%
   filter(sucker == "false" & cheater == "true" & grudger_memory > 0 & token_share == 0) %>% 
   select(x_run_number, total_welfare, grudger_welfare, cheater_welfare, grudger_memory) %>%
   mutate(type = "cheater+grudger", order = 301:400)
-view(only_cheater_grudger_1000)
+#view(only_cheater_grudger_1000)
 
 ggplot(only_cheater_grudger_1000, aes(x = x_run_number, y = total_welfare, color = type)) + 
   geom_point()
