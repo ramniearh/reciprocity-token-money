@@ -1,6 +1,5 @@
 ; Bigoni et al 2020: "producer has good: can consume or transfer(help). consumer values good more"
-; test version, undocumented.
-; to do: streamline, make token and RLM strategies more precise by limiting mechanisms to each strategy
+; early/test version, near-undocumented
 
 globals [ active-strategies total-welfare avg-welfare sucker-welfare cheater-welfare grudger-welfare token-welfare RLM-welfare
   total-welfare-per-tick
@@ -36,6 +35,7 @@ to setup
 
   crt population [ right random 180 fd 13
     set fitness 0
+    set-me-up
   ]
   reset-ticks
 end
@@ -120,7 +120,7 @@ to interact ; unlike BigoniCC, turtles interact twice per round, each time initi
     ]
   ]
 
-    if ( my-strategy = "token" ) and has-token? = false [ ; Dawkins 1985, Kocherlakota 1998: "money is a token of delayed reciprocal altruism"
+    if ( my-strategy = "token" ) and has-token? = false [ ; Dawkins 1985, Kocherlakota 1998: "money is a token of delayed reciprocal altruism". Underlying model for BigoniCC?
       ifelse [has-token?] of one-of link-neighbors = true [ ; "conditional hastoken" - agent only trades in case it doesn't already have a token, and counterpart does. somewhat arbitrary.
       groom ; Netlogo peculiarity? if "one-of" is removed from line above, tokens slowly disappear
 
@@ -163,7 +163,7 @@ to evolve-all
   let n replacement-rate * population
   ask min-n-of n turtles [ fitness ] [ die ]
   create-turtles n [ right random 180 fd random 13
-    set fitness avg-welfare ; new turtles have average fitness. alternatively, reset and recalculate fitness?
+    set fitness avg-welfare ; new turtles are born with average fitness. alternatively, reset and recalculate fitness?
     set-me-up
   ]
 
@@ -307,7 +307,7 @@ SWITCH
 246
 cheater
 cheater
-1
+0
 1
 -1000
 
@@ -349,7 +349,7 @@ INPUTBOX
 210
 100
 benefit
-50.0
+5.0
 1
 0
 Number
