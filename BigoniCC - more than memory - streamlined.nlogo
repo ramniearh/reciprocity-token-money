@@ -47,9 +47,12 @@ to set-me-up
       ifelse random 100 < token-share [ set has-token? true ][ set has-token? false ] ; to review: tokens disappearing during evolution
       shape-me
     ]
-    if my-strategy = "RLM" [
+    if ( my-strategy = "RLM" ) [
       set my-balance one-of [ 0 1 ]; personal index, Bigoni 2020
       size-me
+
+
+
     ]
     color-me
 end
@@ -296,7 +299,7 @@ SWITCH
 389
 token
 token
-1
+0
 1
 -1000
 
@@ -318,7 +321,7 @@ SWITCH
 286
 grudger
 grudger
-1
+0
 1
 -1000
 
@@ -384,8 +387,8 @@ PENS
 "cheater" 1.0 0 -7500403 true "" "plot cheater-welfare "
 "grudger" 1.0 0 -955883 true "" "plot grudger-welfare "
 "token" 1.0 0 -13345367 true "" "plot token-welfare "
-"total" 1.0 0 -16777216 true "" "plot total-welfare "
 "RLM" 1.0 0 -8630108 true "" "plot RLM-welfare"
+"total" 1.0 0 -16777216 true "" "plot total-welfare "
 
 PLOT
 698
@@ -491,30 +494,30 @@ count turtles with [has-token? = true]
 11
 
 TEXTBOX
-1313
-40
-1500
-68
+1234
+29
+1421
+57
 (TOTAL) WELFARE REPORTERS
 11
 0.0
 1
 
 TEXTBOX
-1357
-57
-1507
-75
+1331
+54
+1481
+72
 at 1000 ticks
 11
 0.0
 1
 
 MONITOR
-1428
-121
-1497
-166
+1402
+118
+1471
+163
 total
 total-welfare-1000
 1
@@ -522,10 +525,10 @@ total-welfare-1000
 11
 
 MONITOR
-1353
-74
-1419
-119
+1327
+71
+1393
+116
 sucker
 sucker-welfare-1000
 1
@@ -533,10 +536,10 @@ sucker-welfare-1000
 11
 
 MONITOR
-1354
-121
-1420
-166
+1328
+118
+1394
+163
 cheater
 cheater-welfare-1000
 1
@@ -544,10 +547,10 @@ cheater-welfare-1000
 11
 
 MONITOR
-1355
-170
-1421
-215
+1329
+167
+1395
+212
 grudger
 grudger-welfare-1000
 1
@@ -555,10 +558,10 @@ grudger-welfare-1000
 11
 
 MONITOR
-1354
-218
-1421
-263
+1328
+215
+1395
+260
 token
 token-welfare-1000
 1
@@ -566,10 +569,10 @@ token-welfare-1000
 11
 
 MONITOR
-1428
-168
-1498
-213
+1402
+165
+1472
+210
 average
 avg-welfare-1000
 1
@@ -583,7 +586,7 @@ SLIDER
 322
 grudger-memory
 grudger-memory
-0
+1
 population
 100.0
 1
@@ -697,7 +700,7 @@ SWITCH
 473
 RLM
 RLM
-1
+0
 1
 -1000
 
@@ -713,10 +716,10 @@ RLM-welfare-per-tick
 11
 
 MONITOR
-1354
-267
-1422
-312
+1328
+264
+1396
+309
 RLM
 RLM-welfare-1000
 1
@@ -725,8 +728,8 @@ RLM-welfare-1000
 
 PLOT
 1200
-322
-1499
+332
+1468
 481
 RLM "personal index" - total balance
 NIL
@@ -800,11 +803,20 @@ Dawkins-Koch-BigoniCC: \"token-reciprocity\"
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This is a (simplistic) implementation of an evolutionary helping game, where each agent has the chance to provide a benefit to a counterpart (at a smaller personal cost), and the least succesful strategies are progressively eliminated. The "Sucker" strategy (the name comes from Dawkin's "The Selfish Gene") does this at every interaction - and a society of suckers does pretty well, as the overall level of benefits received is high. Suppose, however, that there is a "Cheater" strategy, which doesn't reciprocate the help: they can receive benefits from Suckers without paying a personal cost. If cheaters are mixed into the population, Suckers are soon extinct - and the entire community is worse off. "Grudgers", in turn, can remember when someone has cheated them - they can only be fooled once. If the benefit/cost ratio from cooperation is high (and if Grudger memory is large enough to remember a large share of the Cheaters),this strategy can win out and invade the population, bringing aggregate levels of welfare back up.
+
+The above is well-known from cooperation studies in evolutionary theory (more mechanisms, including reputation when dealing with strangers, are surveyed in Nowak's "Evolving Cooperation"). This model extends this logic to incorporate some suggestions from the "Money is Memory" literature in economics (Kocherlakota 1998, Bigoni et al 2020). 
+
+Now imagine a large enough group of agents, one for which Grudger memory is not a powerful enough tool (think of the Dunbar number and our societies made up of millions of strangers). The model suggests that a "Token" strategy - one which only agrees to help on the condition that its counterpart transfers an intrisically useless object - provides a large-scale solution that is comparable to small-scale Grudger memory. Further, a "quantified tokens strategy" ("RLM") folds in the mechanics of reputation, ledgers and memory to be even more effective, and brings us close to classical notions of Social Accounting in economics - provided this mechanism is considered legitimate or enforceable.
+
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+Early draft description:
+
+Setup: Define-se a população de agentes (por padrão 100), o custo ao agente da cooperação (padrão 2), o benefício à contraparte (5), e a taxa de evolução (1%). Definem-se as estratégias.
+
+Go: são criados pares aleatórios entre todos os agentes. Todos os agentes são chamados a realizar uma ação unilateral por turno. As ações são:- para agentes Sucker, sempre pagar custo e prover benefício à contraparte- para agentes Cheater, não fazer nada- agentes Grudger têm uma memória em que gravam outros agentes com quem tiveram interações negativas. Ao agir, caso a contraparte não esteja nessa lista, o agente Grudger provê benefício e paga custo. Caso a contraparte esteja na lista, o Grudger não faz nada. Além disso, quando a contraparte interage com o Grudger, caso ela não tenha feito nada (não provendo benefício ao grudger), ela entra na memória do Grudger. O limite máximo da memória do Grudger é configurável no modelo.- agentes Token têm uma variável True/False que representa a posse ou não de um objeto sem valor intrínseco. Ao agir, se o agente Token não tiver o objeto (false) e a contraparte tiver (true), ele paga o custo, provê o benefício, e recebe esse objeto da contraparte (invertendo true e false). A distribuição inicial de tokens é configurável no modelo.- agentes RLM têm uma variável numérica "balanço de ajudas". Ao agir, se a contraparte tiver um balanço maior do que zero, o agente RLM paga o custo, provê o benefício, e tem seu balanço aumentado em uma unidade. A contraparte tem o balanço diminuído em uma unidade. A distribuição inicial de balanços é configurável no modelo. Depois de completas as ações, uma porcentagem dos agentes, aqueles com as menores fitness, são substituídos por novos agentes aleatórios..
 
 ## HOW TO USE IT
 
@@ -1144,17 +1156,17 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="complete-p100-c2b5-e1%" repetitions="20" runMetricsEveryStep="false">
+  <experiment name="complete-p100-c2b5-e1%" repetitions="50" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <exitCondition>ticks &gt; 500</exitCondition>
+    <exitCondition>ticks &gt; 300</exitCondition>
     <metric>total-welfare</metric>
     <metric>avg-welfare</metric>
     <metric>sucker-welfare</metric>
     <metric>cheater-welfare</metric>
     <metric>grudger-welfare</metric>
-    <metric>token-welfare-1000</metric>
-    <metric>RLM-welfare-1000</metric>
+    <metric>token-welfare</metric>
+    <metric>RLM-welfare</metric>
     <metric>count turtles with [ my-strategy = "sucker" ]</metric>
     <metric>count turtles with [ my-strategy = "cheater" ]</metric>
     <metric>count turtles with [ my-strategy = "grudger" ]</metric>
@@ -1162,7 +1174,7 @@ NetLogo 6.4.0
     <metric>count turtles with [ my-strategy = "RLM" ]</metric>
     <metric>sum [my-balance] of turtles</metric>
     <metric>count turtles with [ has-token? = TRUE ]</metric>
-    <runMetricsCondition>ticks mod 10 = 0</runMetricsCondition>
+    <runMetricsCondition>ticks mod 20 = 0</runMetricsCondition>
     <enumeratedValueSet variable="cheater">
       <value value="true"/>
       <value value="false"/>
@@ -1172,10 +1184,8 @@ NetLogo 6.4.0
       <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="token-share">
-      <value value="0"/>
       <value value="25"/>
       <value value="50"/>
-      <value value="75"/>
       <value value="100"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="benefit">
@@ -1188,8 +1198,8 @@ NetLogo 6.4.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="grudger-memory">
       <value value="0"/>
-      <value value="30"/>
-      <value value="60"/>
+      <value value="5"/>
+      <value value="50"/>
       <value value="100"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="evolve?">
