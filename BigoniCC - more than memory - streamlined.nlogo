@@ -24,7 +24,9 @@ turtles-own [ has-token? my-strategy fitness blacklist my-balance ]
 
 to setup
   clear-all
+
   if ( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ) and ( not RLM )[ error "No strategy selected. Execution stopped." stop ]
+
   set active-strategies [ ]
   if sucker [ set active-strategies lput "sucker" active-strategies ]
   if cheater [ set active-strategies lput "cheater" active-strategies ]
@@ -34,16 +36,22 @@ to setup
 
   crt population [ right random 180 fd 13
     set fitness 0
-    ifelse random 100 < token% [set has-token? true][set has-token? false]
-    set my-strategy one-of active-strategies
-    set blacklist []
-    color-me
-    shape-me
-    if RLM [ personal-index-me ]
   ]
-
   reset-ticks
-  tick
+end
+
+to set-me-up
+    set my-strategy one-of active-strategies
+    if my-strategy = "grudger" [ set blacklist [] ]
+    if my-strategy = "token" [
+      ifelse random 100 < token-share [ set has-token? true ][ set has-token? false ] ; to review: tokens disappearing during evolution
+      shape-me
+    ]
+    if my-strategy = "RLM" [
+      set my-balance one-of [ 0 1 ]; personal index, Bigoni 2020
+      size-me
+    ]
+    color-me
 end
 
 to color-me
@@ -58,11 +66,9 @@ to shape-me
     ifelse has-token? [ set shape "star" ][ set shape "default" ]
 end
 
-to personal-index-me
-    set my-balance one-of [ 0 1 ]
+to size-me
     set size log ( my-balance + 2 ) 2
 end
-
 
 to go
   ask links [ die ]
@@ -70,77 +76,97 @@ to go
   ask turtles [
     find-partner
     interact
-    if RLM [ shape-me ]
+    if my-strategy = "token" [ shape-me ]
+    if my-strategy = "RLM" [ size-me ]
   ]
 
-  set sucker-welfare sum [fitness] of turtles with [my-strategy = "sucker"]
-  set cheater-welfare sum [fitness] of turtles with [my-strategy = "cheater"]
-  set grudger-welfare sum [fitness] of turtles with [my-strategy = "grudger"]
-  set token-welfare sum [fitness] of turtles with [my-strategy = "token"]
-  set RLM-welfare sum [fitness] of turtles with [my-strategy = "RLM"]
+  set sucker-welfare sum [fitness] of turtles with [ my-strategy = "sucker" ]
+  set cheater-welfare sum [fitness] of turtles with [ my-strategy = "cheater" ]
+  set grudger-welfare sum [fitness] of turtles with [ my-strategy = "grudger" ]
+  set token-welfare sum [fitness] of turtles with [ my-strategy = "token" ]
+  set RLM-welfare sum [fitness] of turtles with [ my-strategy = "RLM" ]
 
   set total-welfare sum [fitness] of turtles
   set avg-welfare total-welfare / population
 
-  if evolve? [evolve-all]
+  if evolve? [ evolve-all ]
 
   tick
   report-welfare-per-tick
-  if ticks = 1000 [report1000]
+  if ticks = 1000 [ report1000 ]
+
 end
 
-to find-partner
+to find-partner ; random match with a free agent, for the duration of the tick
   if ( not any? link-neighbors ) and ( any? other turtles with [ not any? link-neighbors ] ) [
     create-link-with one-of other turtles with [ not any? link-neighbors ]
   ]
 end
 
-to interact
-    if my-strategy = "sucker" [
+to interact ; unlike BigoniCC, turtles interact twice per round, each time initiated by one member of the pair
+
+    if my-strategy = "sucker" [ ; Trivers 1971
     groom
   ]
-    if my-strategy = "cheater" [
+
+    if my-strategy = "cheater" [ ; Trivers 1971
     not-groom
   ]
-    if my-strategy = "grudger" [ ; "personalistic" grim trigger? evaluate nice tit for tat?
-    ifelse not member? item 0 [other-end] of my-links blacklist [ groom ] [ not-groom ]
+
+    if my-strategy = "grudger" [ ; Confirm: equivalent to Trivers 1971 with added memory cap? "personalistic grim trigger"? to do: evaluate nice tit for tat?
+    ifelse not member? one-of link-neighbors blacklist [ groom ] [ not-groom ] ; netlogo peculiarity? grudger memory seems to not operate without specifying "one-of" link-neighbors
+    if length blacklist > grudger-memory [
+      set blacklist remove-item ( length blacklist - 1 ) blacklist ; cap length of memory string by killing last/oldest item
+    ]
   ]
-    if ( my-strategy = "token" ) and has-token? = false [ ; "conditional hastoken" - agent only trades in case it doesn't already have a token, and counterpart does
-      ifelse [has-token?] of item 0 [other-end] of my-links = true [
-      groom
-      ; Adding Token mechanism:
-      ask link-neighbors [set has-token? false]
+
+    if ( my-strategy = "token" ) and has-token? = false [ ; Dawkins 1985, Kocherlakota 1998: "money is a token of delayed reciprocal altruism"
+      ifelse [has-token?] of one-of link-neighbors = true [ ; "conditional hastoken" - agent only trades in case it doesn't already have a token, and counterpart does. somewhat arbitrary.
+      groom ; Netlogo peculiarity? if "one-of" is removed from line above, tokens slowly disappear
+
+      ; Token swap mechanism:
+      ask link-neighbors [ set has-token? false ]
       set has-token? true
     ]
     [ not-groom ]
   ]
-  if ( my-strategy = "RLM" ) [ ; Bigoni MMM 2020 - supplementary material p. 10
-    ifelse [my-balance] of item 0 [other-end] of my-links > 0   [
+
+  if ( my-strategy = "RLM" ) [ ; Bigoni MMM 2020 - supplementary material p. 10. Reputation balances supposed to be less successful than tokens (!= model results)
+    ifelse [my-balance] of one-of link-neighbors > 0 [
       groom
-      ; Adding RLM mechanism:
+
+      ; RLM swap mechanism: increase balance of benefit provider, decrease balance of receiver
       set my-balance my-balance + 1
       ask link-neighbors [ set my-balance my-balance - 1 ]
     ]
-    [not-groom]
+    [ not-groom ]
   ]
+
 end
 
 to groom
   set fitness fitness - cost
-  ask link-neighbors [ ; confirm formulation in relation to item 0 other-end
+  ask link-neighbors [ ; confirm peculiar behavior "one-of" x "item 0"
     set fitness fitness + benefit
   ]
 end
 
 to not-groom
-  ask link-neighbors [
+  ask link-neighbors with [ my-strategy = "grudger" ] [
     if not member? myself blacklist [
       set blacklist fput myself blacklist
     ]
-    if length blacklist > grudger-memory-cap [
-      set blacklist remove-item ( length blacklist - 1 ) blacklist
-    ]; cap length of memory string
   ]
+end
+
+to evolve-all
+  let n replacement-rate * population
+  ask min-n-of n turtles [ fitness ] [ die ]
+  create-turtles n [ right random 180 fd random 13
+    set fitness avg-welfare ; new turtles have average fitness. alternatively, reset and recalculate fitness?
+    set-me-up
+  ]
+
 end
 
 to report-welfare-per-tick
@@ -161,20 +187,6 @@ to report1000
   set grudger-welfare-1000 grudger-welfare
   set token-welfare-1000 token-welfare
   set RLM-welfare-1000 RLM-welfare
-end
-
-to evolve-all
-  let n replacement-rate * population
-  ask min-n-of n turtles [ fitness ] [ die ]
-  create-turtles n [ right random 180 fd random 13
-    set fitness avg-welfare ;new turtles have average fitness. alternatively, reset and recalculate fitness?
-    ifelse random 100 < token% [set has-token? true][set has-token? false] ;REVIEW - new token creation
-    set my-strategy one-of active-strategies
-    set blacklist []
-    color-me
-    shape-me
-    if RLM [ personal-index-me ]
-  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -247,7 +259,7 @@ NIL
 NIL
 NIL
 NIL
-0
+1
 
 BUTTON
 475
@@ -264,46 +276,46 @@ NIL
 NIL
 NIL
 NIL
-0
+1
 
 SWITCH
-20
-210
-110
-243
+25
+213
+115
+246
 sucker
 sucker
-1
-1
--1000
-
-SWITCH
-65
-332
-168
-365
-token
-token
 0
 1
 -1000
 
 SWITCH
-116
-210
-206
-243
-cheater
-cheater
-0
+25
+356
+115
+389
+token
+token
+1
 1
 -1000
 
 SWITCH
-64
-256
-167
-289
+114
+213
+204
+246
+cheater
+cheater
+1
+1
+-1000
+
+SWITCH
+24
+253
+114
+286
 grudger
 grudger
 1
@@ -311,9 +323,9 @@ grudger
 -1000
 
 TEXTBOX
-49
+58
 192
-199
+208
 222
 --AVAILABLE STRATEGIES--
 11
@@ -337,7 +349,7 @@ INPUTBOX
 210
 100
 benefit
-5.0
+50.0
 1
 0
 Number
@@ -442,12 +454,12 @@ count turtles
 11
 
 SLIDER
-29
-365
-201
-398
-token%
-token%
+25
+391
+197
+424
+token-share
+token-share
 0
 100
 50.0
@@ -501,7 +513,7 @@ at 1000 ticks
 MONITOR
 1428
 121
-1495
+1497
 166
 total
 total-welfare-1000
@@ -512,7 +524,7 @@ total-welfare-1000
 MONITOR
 1353
 74
-1413
+1419
 119
 sucker
 sucker-welfare-1000
@@ -523,7 +535,7 @@ sucker-welfare-1000
 MONITOR
 1354
 121
-1413
+1420
 166
 cheater
 cheater-welfare-1000
@@ -534,7 +546,7 @@ cheater-welfare-1000
 MONITOR
 1355
 170
-1414
+1421
 215
 grudger
 grudger-welfare-1000
@@ -545,7 +557,7 @@ grudger-welfare-1000
 MONITOR
 1354
 218
-1417
+1421
 263
 token
 token-welfare-1000
@@ -565,15 +577,15 @@ avg-welfare-1000
 11
 
 SLIDER
-29
+24
 289
-201
+207
 322
-grudger-memory-cap
-grudger-memory-cap
+grudger-memory
+grudger-memory
 0
 population
-0.0
+100.0
 1
 1
 NIL
@@ -679,13 +691,13 @@ PENS
 "RLM" 1.0 0 -8630108 true "" "plot RLM-welfare-per-tick"
 
 SWITCH
-36
-410
-126
-443
+24
+440
+114
+473
 RLM
 RLM
-0
+1
 1
 -1000
 
@@ -703,7 +715,7 @@ RLM-welfare-per-tick
 MONITOR
 1354
 267
-1417
+1422
 312
 RLM
 RLM-welfare-1000
@@ -716,7 +728,7 @@ PLOT
 322
 1499
 481
-RLM "personal index" - total balance per strategy
+RLM "personal index" - total balance
 NIL
 NIL
 0.0
@@ -735,20 +747,20 @@ PENS
 "RLM" 1.0 0 -8630108 true "" "plot sum [my-balance] of turtles with [ my-strategy = \"RLM\" ]"
 
 TEXTBOX
-130
-420
-280
-446
-\"bigoni-memory\":\nreputation-ledger
+120
+442
+270
+468
+\"Bigoni-memory\":\nreputation-ledger
 10
 0.0
 1
 
 SWITCH
-36
-455
-126
+24
 488
+114
+521
 KLRM
 KLRM
 1
@@ -756,11 +768,31 @@ KLRM
 -1000
 
 TEXTBOX
-129
-460
-253
-486
-\"kocherlakota-memory\" - (not implemented)
+119
+480
+243
+532
+\"Kocherlakota-memory\" - (not implemented - complete history of partner's transactions)
+10
+0.0
+1
+
+TEXTBOX
+137
+256
+287
+282
+Trivers 1971\n(plus memory cap)
+10
+0.0
+1
+
+TEXTBOX
+124
+359
+237
+413
+Dawkins-Koch-BigoniCC: \"token-reciprocity\"
 10
 0.0
 1
@@ -1112,203 +1144,74 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="sucker-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
+  <experiment name="complete-p100-c2b5-e1%" repetitions="20" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="1111"/>
-    <metric>sucker-welfare-1000</metric>
-    <enumeratedValueSet variable="cheater">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sucker">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token%">
-      <value value="77"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="benefit">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger-memory-cap">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cost">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="evolve?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="population">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="replacement-rate">
-      <value value="0.01"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="cheater-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="1111"/>
-    <metric>cheater-welfare-1000</metric>
-    <enumeratedValueSet variable="cheater">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sucker">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token%">
-      <value value="77"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="benefit">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger-memory-cap">
-      <value value="10"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cost">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="evolve?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="population">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="replacement-rate">
-      <value value="0.01"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="grudger-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="1111"/>
-    <metric>grudger-welfare-1000</metric>
-    <enumeratedValueSet variable="cheater">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sucker">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token%">
-      <value value="77"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="benefit">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger-memory-cap">
-      <value value="0"/>
-      <value value="10"/>
-      <value value="20"/>
-      <value value="30"/>
-      <value value="40"/>
-      <value value="50"/>
-      <value value="60"/>
-      <value value="70"/>
-      <value value="80"/>
-      <value value="90"/>
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cost">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="evolve?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="population">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="replacement-rate">
-      <value value="0.01"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token">
-      <value value="false"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="token-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="1111"/>
-    <metric>token-welfare-1000</metric>
-    <enumeratedValueSet variable="cheater">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="sucker">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token%">
-      <value value="0"/>
-      <value value="10"/>
-      <value value="20"/>
-      <value value="30"/>
-      <value value="40"/>
-      <value value="50"/>
-      <value value="60"/>
-      <value value="70"/>
-      <value value="80"/>
-      <value value="90"/>
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="benefit">
-      <value value="5"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger-memory-cap">
-      <value value="50"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="cost">
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="evolve?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="population">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="replacement-rate">
-      <value value="0.01"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="grudger">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="token">
-      <value value="true"/>
-    </enumeratedValueSet>
-  </experiment>
-  <experiment name="complete-p100-c2b5-e1%" repetitions="100" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="1000"/>
-    <exitCondition>(( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ))</exitCondition>
+    <exitCondition>ticks &gt; 500</exitCondition>
+    <metric>total-welfare</metric>
+    <metric>avg-welfare</metric>
     <metric>sucker-welfare</metric>
     <metric>cheater-welfare</metric>
     <metric>grudger-welfare</metric>
-    <metric>token-welfare</metric>
-    <metric>total-welfare</metric>
+    <metric>token-welfare-1000</metric>
+    <metric>RLM-welfare-1000</metric>
     <metric>count turtles with [ my-strategy = "sucker" ]</metric>
     <metric>count turtles with [ my-strategy = "cheater" ]</metric>
     <metric>count turtles with [ my-strategy = "grudger" ]</metric>
     <metric>count turtles with [ my-strategy = "token" ]</metric>
+    <metric>count turtles with [ my-strategy = "RLM" ]</metric>
+    <metric>sum [my-balance] of turtles</metric>
+    <metric>count turtles with [ has-token? = TRUE ]</metric>
+    <runMetricsCondition>ticks mod 10 = 0</runMetricsCondition>
     <enumeratedValueSet variable="cheater">
-      <value value="false"/>
       <value value="true"/>
+      <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="sucker">
-      <value value="false"/>
       <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="token-share">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="benefit">
+      <value value="3"/>
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cost">
+      <value value="1"/>
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="grudger-memory">
+      <value value="0"/>
+      <value value="30"/>
+      <value value="60"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="evolve?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="population">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="RLM">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.01"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="grudger">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="token">
+      <value value="true"/>
+      <value value="false"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
