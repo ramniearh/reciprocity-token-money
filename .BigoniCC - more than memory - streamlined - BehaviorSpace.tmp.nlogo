@@ -48,13 +48,8 @@ to set-me-up
       shape-me
     ]
     if ( my-strategy = "RLM" ) [
-      set my-balance one-of [ 0 1 ]; personal index, Bigoni 2020
+      ifelse RLM-oversupply? [ set my-balance 5 ][ set my-balance one-of [ 0 1 ] ]; "personal index" in Bigoni 2020 - clarify if memory, reputation, ledger
       size-me
-
-    ;the lines below are only relevant to simplify BehaviorSpace runs:
-    if ( not grudger  and grudger-memory > 0) [stop]
-    if ( not token  and token-share > 0) [stop]
-
     ]
     color-me
 end
@@ -76,6 +71,13 @@ to size-me
 end
 
 to go
+  ;the lines below are only relevant to simplify BehaviorSpace runs:
+  if BehaviorSpace-optimization? [
+    if ( not grudger  and grudger-memory > 0) [stop]
+    if ( not token  and token-share > 0) [stop]
+  ]
+
+
   ask links [ die ]
 
   ask turtles [
@@ -95,6 +97,9 @@ to go
   set avg-welfare total-welfare / population
 
   if evolve? [ evolve-all ]
+
+
+
 
   tick
   report-welfare-per-tick
@@ -323,7 +328,7 @@ SWITCH
 286
 grudger
 grudger
-1
+0
 1
 -1000
 
@@ -762,10 +767,10 @@ TEXTBOX
 1
 
 SWITCH
-24
-488
-114
-521
+1247
+499
+1337
+532
 KLRM
 KLRM
 1
@@ -773,10 +778,10 @@ KLRM
 -1000
 
 TEXTBOX
-119
-480
-243
-532
+1342
+491
+1466
+543
 \"Kocherlakota-memory\" - (not implemented - complete history of partner's transactions)
 10
 0.0
@@ -801,6 +806,28 @@ Dawkins-Koch-BigoniCC: \"token-reciprocity\"
 10
 0.0
 1
+
+SWITCH
+24
+476
+166
+509
+RLM-oversupply?
+RLM-oversupply?
+0
+1
+-1000
+
+SWITCH
+1127
+489
+1331
+522
+BehaviorSpace-optimization?
+BehaviorSpace-optimization?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -847,6 +874,12 @@ Go: são criados pares aleatórios entre todos os agentes. Todos os agentes são
 ## CREDITS AND REFERENCES
 
 (a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+
+
+##### SASE Abstract submission
+Money, memory, and generalized reciprocity: a commentary on mainstream monetary theory through an institution-friendly agent-based model
+
+An influential line of reflection in pure economic theory regards the institution of money as a form of collective memory: a social mechanism providing economies with allocations of goods that could otherwise also be reached through records of past transactions, dyadic credit relations, or gift-giving. A stronger version of this view conceives of money as "a token of generalized reciprocity". Although arguably mirrored by ideas that are central to the understanding of money in other social sciences, this body of work is rarely engaged with by anthropologists and sociologists; neither are these theories clearly anchored on the ample empirical research on the biological evolution of human altruism, social preferences, and social norms. This paper proposes a novel agent-based model bridging the gap between classic evolutionary models of indirect reciprocity and the "money is memory" tradition in economics. We begin by reviewing the current theoretical and experimental literature deploying a framework of repeated games and equilibrium to answer questions about the fundamental role of money in the economy; we pay special attention to the peculiar and often unexamined way in which this literature construes market exchange as a form of spontaneous cooperation. We then extend a simple "evolutionary helping game" agent-based model through the addition of a token mechanism that alters the range of possible agent interactions, showing how intrinsically useless objects can fulfill a cooperation-enhancing role similar to the one played by punishment and reputation in models of indirect reciprocity. Although restrictive, the abstractions of this formal model provide us with tools to discuss three issues relevant to both cooperation studies and economic theory: the relationship between altruism and mutualism in economic interactions mediated by the market, some implications of interpreting evolutionary models in terms of either individual or institutional payoffs, and the type of empirical data that could be considered relevant for the evaluation of models of institutional selection. To conclude, we then draw on institutionalism and economic history to reflect on major questions that formal modeling approaches - even if enriched by evolutionary anthropology - almost universally _leave out_ of monetary theory: semiotics and representation; the role of coercion, authority and the state; and the cultural and institutional embeddedness of the social relations of money.
 @#$#@#$#@
 default
 true
@@ -1160,10 +1193,10 @@ NetLogo 6.4.0
 <experiments>
   <experiment name="complete-p100-c2b5-e1%" repetitions="50" runMetricsEveryStep="false">
     <setup>setup</setup>
-    <go>go
-if ( not grudger  and grudger-memory &gt; 0) [stop]
-if ( not token  and token-share &gt; 0) [stop]</go>
-    <exitCondition>ticks &gt; 300</exitCondition>
+    <go>if ( not grudger  and grudger-memory &gt; 0) [stop]
+if ( not token  and token-share &gt; 0) [stop]
+go</go>
+    <exitCondition>ticks &gt; 500</exitCondition>
     <metric>total-welfare</metric>
     <metric>avg-welfare</metric>
     <metric>sucker-welfare</metric>
@@ -1178,7 +1211,7 @@ if ( not token  and token-share &gt; 0) [stop]</go>
     <metric>count turtles with [ my-strategy = "RLM" ]</metric>
     <metric>sum [my-balance] of turtles</metric>
     <metric>count turtles with [ has-token? = TRUE ]</metric>
-    <runMetricsCondition>ticks mod 20 = 0</runMetricsCondition>
+    <runMetricsCondition>ticks mod 5 = 0</runMetricsCondition>
     <enumeratedValueSet variable="cheater">
       <value value="true"/>
       <value value="false"/>
@@ -1195,10 +1228,12 @@ if ( not token  and token-share &gt; 0) [stop]</go>
     <enumeratedValueSet variable="benefit">
       <value value="3"/>
       <value value="5"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="cost">
       <value value="1"/>
       <value value="2"/>
+      <value value="3"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="grudger-memory">
       <value value="0"/>
@@ -1224,6 +1259,10 @@ if ( not token  and token-share &gt; 0) [stop]</go>
       <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="token">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="RLM-oversupply?">
       <value value="true"/>
       <value value="false"/>
     </enumeratedValueSet>
