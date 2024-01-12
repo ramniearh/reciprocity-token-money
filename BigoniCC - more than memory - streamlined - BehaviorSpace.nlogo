@@ -24,7 +24,7 @@ turtles-own [ has-token? my-strategy fitness blacklist my-balance ]
 to setup
   clear-all
 
-  if ( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ) and ( not RLM )[ error "No strategy selected. Execution stopped." stop ]
+  ;if ( not sucker ) and ( not cheater ) and ( not grudger ) and ( not token ) and ( not RLM )[ error "No strategy selected. Execution stopped." stop ]
 
   set active-strategies [ ]
   if sucker [ set active-strategies lput "sucker" active-strategies ]
@@ -48,13 +48,8 @@ to set-me-up
       shape-me
     ]
     if ( my-strategy = "RLM" ) [
-      set my-balance one-of [ 0 1 ]; personal index, Bigoni 2020
+      ifelse RLM-oversupply? [ set my-balance 5 ][ set my-balance one-of [ 0 1 ] ]; "personal index" in Bigoni 2020 - clarify if memory, reputation, ledger
       size-me
-
-    ;the lines below are only relevant to simplify BehaviorSpace runs:
-    if ( not grudger  and grudger-memory > 0) [stop]
-    if ( not token  and token-share > 0) [stop]
-
     ]
     color-me
 end
@@ -76,6 +71,15 @@ to size-me
 end
 
 to go
+  ;the lines below are only relevant to simplify BehaviorSpace runs:
+  ;if BehaviorSpace-optimization? [
+  ;  if ( not grudger  and grudger-memory > 0) [stop]
+  ;  if ( not token  and token-share > 0) [stop]
+  ; if ( not RLM and RLM-oversupply?) [stop]
+  ;]
+
+
+
   ask links [ die ]
 
   ask turtles [
@@ -95,6 +99,9 @@ to go
   set avg-welfare total-welfare / population
 
   if evolve? [ evolve-all ]
+
+
+
 
   tick
   report-welfare-per-tick
@@ -290,7 +297,7 @@ SWITCH
 246
 sucker
 sucker
-1
+0
 1
 -1000
 
@@ -312,7 +319,7 @@ SWITCH
 246
 cheater
 cheater
-1
+0
 1
 -1000
 
@@ -323,7 +330,7 @@ SWITCH
 286
 grudger
 grudger
-1
+0
 1
 -1000
 
@@ -480,7 +487,7 @@ SWITCH
 154
 evolve?
 evolve?
-0
+1
 1
 -1000
 
@@ -702,7 +709,7 @@ SWITCH
 473
 RLM
 RLM
-1
+0
 1
 -1000
 
@@ -762,10 +769,10 @@ TEXTBOX
 1
 
 SWITCH
-24
-488
-114
-521
+1247
+499
+1337
+532
 KLRM
 KLRM
 1
@@ -773,10 +780,10 @@ KLRM
 -1000
 
 TEXTBOX
-119
-480
-243
-532
+1342
+491
+1466
+543
 \"Kocherlakota-memory\" - (not implemented - complete history of partner's transactions)
 10
 0.0
@@ -801,6 +808,28 @@ Dawkins-Koch-BigoniCC: \"token-reciprocity\"
 10
 0.0
 1
+
+SWITCH
+24
+476
+166
+509
+RLM-oversupply?
+RLM-oversupply?
+0
+1
+-1000
+
+SWITCH
+1127
+489
+1331
+522
+BehaviorSpace-optimization?
+BehaviorSpace-optimization?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1164,12 +1193,10 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="complete-p100-c2b5-e1%" repetitions="50" runMetricsEveryStep="false">
+  <experiment name="complete-p100-c2b5-e1%" repetitions="25" runMetricsEveryStep="false">
     <setup>setup</setup>
-    <go>go
-if ( not grudger  and grudger-memory &gt; 0) [stop]
-if ( not token  and token-share &gt; 0) [stop]</go>
-    <exitCondition>ticks &gt; 300</exitCondition>
+    <go>go</go>
+    <exitCondition>ticks &gt; 500</exitCondition>
     <metric>total-welfare</metric>
     <metric>avg-welfare</metric>
     <metric>sucker-welfare</metric>
@@ -1184,7 +1211,7 @@ if ( not token  and token-share &gt; 0) [stop]</go>
     <metric>count turtles with [ my-strategy = "RLM" ]</metric>
     <metric>sum [my-balance] of turtles</metric>
     <metric>count turtles with [ has-token? = TRUE ]</metric>
-    <runMetricsCondition>ticks mod 20 = 0</runMetricsCondition>
+    <runMetricsCondition>ticks mod 50 = 0</runMetricsCondition>
     <enumeratedValueSet variable="cheater">
       <value value="true"/>
       <value value="false"/>
@@ -1205,11 +1232,11 @@ if ( not token  and token-share &gt; 0) [stop]</go>
     <enumeratedValueSet variable="cost">
       <value value="1"/>
       <value value="2"/>
+      <value value="3"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="grudger-memory">
       <value value="0"/>
       <value value="5"/>
-      <value value="50"/>
       <value value="100"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="evolve?">
@@ -1230,6 +1257,87 @@ if ( not token  and token-share &gt; 0) [stop]</go>
       <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="token">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="RLM-oversupply?">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="complete-p100-c2b5-e1% (no evolution)" repetitions="500" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>if ( not grudger  and grudger-memory &gt; 0) [stop]
+if ( not token  and token-share &gt; 0) [stop]
+if ( not RLM and RLM-oversupply?) [stop]
+go</go>
+    <exitCondition>ticks &gt; 100</exitCondition>
+    <metric>total-welfare</metric>
+    <metric>avg-welfare</metric>
+    <metric>sucker-welfare</metric>
+    <metric>cheater-welfare</metric>
+    <metric>grudger-welfare</metric>
+    <metric>token-welfare</metric>
+    <metric>RLM-welfare</metric>
+    <metric>count turtles with [ my-strategy = "sucker" ]</metric>
+    <metric>count turtles with [ my-strategy = "cheater" ]</metric>
+    <metric>count turtles with [ my-strategy = "grudger" ]</metric>
+    <metric>count turtles with [ my-strategy = "token" ]</metric>
+    <metric>count turtles with [ my-strategy = "RLM" ]</metric>
+    <metric>sum [my-balance] of turtles</metric>
+    <metric>count turtles with [ has-token? = TRUE ]</metric>
+    <runMetricsCondition>ticks mod 5 = 0</runMetricsCondition>
+    <enumeratedValueSet variable="cheater">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sucker">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="token-share">
+      <value value="25"/>
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="benefit">
+      <value value="3"/>
+      <value value="5"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cost">
+      <value value="1"/>
+      <value value="2"/>
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="grudger-memory">
+      <value value="0"/>
+      <value value="5"/>
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="evolve?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="population">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="RLM">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.01"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="grudger">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="token">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="RLM-oversupply?">
       <value value="true"/>
       <value value="false"/>
     </enumeratedValueSet>
