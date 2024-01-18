@@ -2,6 +2,8 @@ library(tidyverse)
 library(here)
 library(janitor)
 
+### pending: analyse BC-FULL behaviorspace file (adapt below)
+
 df <- 
   here("BigoniCC", "large", "BigoniCC - more than memory - streamlined - BehaviorSpace complete-p100-c2b5-e1%-table.csv") %>%
   read.csv(skip = 6) %>% 
@@ -33,14 +35,11 @@ df_500 %>%
 
 
 
-
-
-
 # Plot evolution of strategies over 500 steps for situations where all 5 strategies co-exist
 
 ## create new df using only turtle-counts per strategy
 df_evol_all5 <- df %>% 
-  filter( sucker == "true" & cheater == "false" & grudger == "false" & token == "false" & rlm == "false" ) %>%
+  filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "true" & rlm == "true" ) %>%
   select(-cheater, -sucker, -grudger, -token, -rlm, -contains("welfare")) %>% 
   arrange(step, run_number, cost, benefit, grudger_memory, token_share)
 
