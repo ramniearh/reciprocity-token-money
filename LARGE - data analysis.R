@@ -25,11 +25,11 @@ df_500 <- df %>%
 ## plot pure strategies: token shares
 
 df_500 %>% 
-  filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "true" & rlm == "true" & token_share == 50 & grudger_memory == 5 & rlm_oversupply == "false") %>% 
+  filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "true" & rlm == "false" & token_share == 50 & grudger_memory == 5 & rlm_oversupply == "false") %>% 
   select(-total_welfare, -avg_welfare) %>% 
-  pivot_longer(contains("welfare"), names_to = "strategy", values_to = "total_strategy_welfare") %>% 
-  ggplot(aes(x= benefit / cost, y = total_strategy_welfare, color = strategy)) +
-  geom_point(position = "jitter")
+  pivot_longer(contains("welfare")) %>% 
+  ggplot(aes(x=run_number, y = value, color = name)) +
+  geom_point(aes(size = run_number))
 
 
 
@@ -40,7 +40,7 @@ df_500 %>%
 
 ## create new df using only turtle-counts per strategy
 df_evol_all5 <- df %>% 
-  filter( sucker == "true" & cheater == "false" & grudger == "false" & token == "false" & rlm == "false" ) %>%
+  filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "true" & rlm == "true" ) %>%
   select(-cheater, -sucker, -grudger, -token, -rlm, -contains("welfare")) %>% 
   arrange(step, run_number, cost, benefit, grudger_memory, token_share)
 

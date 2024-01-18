@@ -297,7 +297,7 @@ SWITCH
 246
 sucker
 sucker
-0
+1
 1
 -1000
 
@@ -308,7 +308,7 @@ SWITCH
 389
 token
 token
-0
+1
 1
 -1000
 
@@ -350,7 +350,7 @@ INPUTBOX
 151
 99
 cost
-2.0
+0.3
 1
 0
 Number
@@ -361,7 +361,7 @@ INPUTBOX
 210
 100
 benefit
-5.0
+2.4
 1
 0
 Number
@@ -1193,7 +1193,7 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="complete-p100-c2b5-e1%" repetitions="25" runMetricsEveryStep="false">
+  <experiment name="complete-p100-c2b5-e1%" repetitions="50" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <exitCondition>ticks &gt; 500</exitCondition>
@@ -1211,7 +1211,7 @@ NetLogo 6.4.0
     <metric>count turtles with [ my-strategy = "RLM" ]</metric>
     <metric>sum [my-balance] of turtles</metric>
     <metric>count turtles with [ has-token? = TRUE ]</metric>
-    <runMetricsCondition>ticks mod 50 = 0</runMetricsCondition>
+    <runMetricsCondition>ticks mod 25 = 0</runMetricsCondition>
     <enumeratedValueSet variable="cheater">
       <value value="true"/>
       <value value="false"/>
@@ -1226,16 +1226,20 @@ NetLogo 6.4.0
       <value value="100"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="benefit">
+      <value value="1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
       <value value="3"/>
       <value value="5"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="cost">
       <value value="1"/>
-      <value value="2"/>
-      <value value="3"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="grudger-memory">
       <value value="0"/>
+      <value value="1"/>
       <value value="5"/>
       <value value="100"/>
     </enumeratedValueSet>
