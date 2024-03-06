@@ -1,0 +1,28 @@
+PSEUDOCODE money-token-reciprocity
+
+# create agents
+
+   create agent types
+
+# define main helping action
+groom
+
+# define strategies
+
+
+# Action sequence:
+
+to run every turn:
+  ask links [ die ]
+
+  ask turtles [
+    find-partner
+    interact
+
+
+# Learning and replacement: eliminate agent with lowest fitness, create new agent with average fitness and random strategy
+evolve
+
+
+
+# Suggested monitors: welfare per strategy, total welfare, number of surviving agents adopting each strategy

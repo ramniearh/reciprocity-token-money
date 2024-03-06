@@ -1,9 +1,9 @@
 library(tidyverse)
 library(here)
 library(janitor)
-
+here()
 df <- 
-  here("BigoniCC", "large", "BigoniCC - more than memory - streamlined - BehaviorSpace complete-p100-c2b5-e1%-table.csv") %>%
+  here("BehaviorSpace", "BigoniCC", "large", "BigoniCC - more than memory - streamlined - BehaviorSpace complete-p100-c2b5-e1%-table.csv") %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%
   as_tibble() %>% 
@@ -21,18 +21,25 @@ df_500 <- df %>%
   arrange(run_number, cost, benefit, grudger_memory, token_share) %>% 
   glimpse()
 
+df_500_S <- df_500 %>% 
+  filter( sucker == "true" & cheater == "false" & grudger == "false" & token == "false" & rlm == "false" & token_share == 50 & grudger_memory == 5 & rlm_oversupply == "false") 
+df_500_SC <- df_500 %>% 
+  filter( sucker == "true" & cheater == "true" & grudger == "false" & token == "false" & rlm == "false" & token_share == 50 & grudger_memory == 5 & rlm_oversupply == "false")
+df_500_SCG <- df_500 %>% 
+  filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "false" & rlm == "false" & token_share == 50 & grudger_memory == 5 & rlm_oversupply == "false")
+df_500_SCGT <- df_500 %>% 
+  filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "true" & rlm == "false" & token_share == 50 & grudger_memory == 5 & rlm_oversupply == "false")
+df_500_all5 <- df_500 %>% 
+  filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "true" & rlm == "true" & token_share == 50 & grudger_memory == 5 & rlm_oversupply == "false")
 
 ## plot pure strategies: token shares
 
-df_500 %>% 
-  filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "true" & rlm == "false" & token_share == 50 & grudger_memory == 5 & rlm_oversupply == "false") %>% 
+df_500_S %>% 
   select(-total_welfare, -avg_welfare) %>% 
   pivot_longer(contains("welfare")) %>% 
-  ggplot(aes(x=run_number, y = value, color = name)) +
-  geom_point(aes(size = run_number))
-
-
-
+  ggplot(aes(x=benefit/cost, y = value, color = name)) +
+  geom_jitter() +
+  ylim(0, 250000)
 
 
 

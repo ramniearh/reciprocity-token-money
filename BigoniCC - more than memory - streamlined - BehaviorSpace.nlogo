@@ -78,8 +78,6 @@ to go
   ; if ( not RLM and RLM-oversupply?) [stop]
   ;]
 
-
-
   ask links [ die ]
 
   ask turtles [
@@ -99,9 +97,6 @@ to go
   set avg-welfare total-welfare / population
 
   if evolve? [ evolve-all ]
-
-
-
 
   tick
   report-welfare-per-tick
@@ -1322,6 +1317,84 @@ go</go>
     </enumeratedValueSet>
     <enumeratedValueSet variable="evolve?">
       <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="population">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="RLM">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replacement-rate">
+      <value value="0.01"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="grudger">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="token">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="RLM-oversupply?">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="complete-p100-benefitUP-e1% (copy)" repetitions="50" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <exitCondition>ticks &gt; 1000</exitCondition>
+    <metric>total-welfare</metric>
+    <metric>avg-welfare</metric>
+    <metric>sucker-welfare</metric>
+    <metric>cheater-welfare</metric>
+    <metric>grudger-welfare</metric>
+    <metric>token-welfare</metric>
+    <metric>RLM-welfare</metric>
+    <metric>count turtles with [ my-strategy = "sucker" ]</metric>
+    <metric>count turtles with [ my-strategy = "cheater" ]</metric>
+    <metric>count turtles with [ my-strategy = "grudger" ]</metric>
+    <metric>count turtles with [ my-strategy = "token" ]</metric>
+    <metric>count turtles with [ my-strategy = "RLM" ]</metric>
+    <metric>sum [my-balance] of turtles</metric>
+    <metric>count turtles with [ has-token? = TRUE ]</metric>
+    <runMetricsCondition>ticks mod 10 = 0</runMetricsCondition>
+    <enumeratedValueSet variable="cheater">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sucker">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="token-share">
+      <value value="25"/>
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="benefit">
+      <value value="1"/>
+      <value value="1.2"/>
+      <value value="1.5"/>
+      <value value="2"/>
+      <value value="3"/>
+      <value value="5"/>
+      <value value="10"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cost">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="grudger-memory">
+      <value value="0"/>
+      <value value="1"/>
+      <value value="5"/>
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="evolve?">
+      <value value="true"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="population">
       <value value="100"/>
