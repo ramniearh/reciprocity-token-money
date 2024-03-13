@@ -2,8 +2,9 @@ library(tidyverse)
 library(here)
 library(janitor)
 here()
+
 df <- 
-  here("BehaviorSpace", "BigoniCC", "large", "BigoniCC - more than memory - streamlined - BehaviorSpace complete-p100-c2b5-e1%-table.csv") %>%
+  here("BehaviorSpace", "benefitUP", "BigoniCC - more than memory - streamlined - BehaviorSpace benefitUP-p100-e1%-table.csv") %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%
   as_tibble() %>% 
@@ -32,22 +33,48 @@ df_500_SCGT <- df_500 %>%
 df_500_all5 <- df_500 %>% 
   filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "true" & rlm == "true" & token_share == 50 & grudger_memory == 5 & rlm_oversupply == "false")
 
-## plot pure strategies: token shares
+## plot total welfare at 500 steps for different strategy combinations:
 
 df_500_S %>% 
   select(-total_welfare, -avg_welfare) %>% 
   pivot_longer(contains("welfare")) %>% 
   ggplot(aes(x=benefit/cost, y = value, color = name)) +
   geom_jitter() +
-  ylim(0, 250000)
+  ylim(0, 1000000)
 
+df_500_SC %>% 
+  select(-total_welfare, -avg_welfare) %>% 
+  pivot_longer(contains("welfare")) %>% 
+  ggplot(aes(x=benefit/cost, y = value, color = name)) +
+  geom_jitter() +
+  ylim(0, 1000000)
 
+df_500_SCG %>% 
+  select(-total_welfare, -avg_welfare) %>% 
+  pivot_longer(contains("welfare")) %>% 
+  ggplot(aes(x=benefit/cost, y = value, color = name)) +
+  geom_jitter() +
+  ylim(0, 1000000)
+
+df_500_SCGT %>% 
+  select(-total_welfare, -avg_welfare) %>% 
+  pivot_longer(contains("welfare")) %>% 
+  ggplot(aes(x=benefit/cost, y = value, color = name)) +
+  geom_jitter() +
+  ylim(0, 1000000)
+
+df_500_all5 %>% 
+  select(-total_welfare, -avg_welfare) %>% 
+  pivot_longer(contains("welfare")) %>% 
+  ggplot(aes(x=benefit/cost, y = value, color = name)) +
+  geom_jitter() +
+  ylim(0, 1000000)
 
 # Plot evolution of strategies over 500 steps for situations where all 5 strategies co-exist
 
 ## create new df using only turtle-counts per strategy
 df_evol_all5 <- df %>% 
-  filter( sucker == "true" & cheater == "true" & grudger == "true" & token == "true" & rlm == "true" ) %>%
+  filter( sucker == "false" & cheater == "false" & grudger == "false" & token == "true" & rlm == "true" ) %>%
   select(-cheater, -sucker, -grudger, -token, -rlm, -contains("welfare")) %>% 
   arrange(step, run_number, cost, benefit, grudger_memory, token_share)
 
@@ -68,5 +95,5 @@ long_df_evol_all5 <- df_evol_all5 %>%
 
 long_df_evol_all5 %>%
   ggplot(aes(x = step, y = share_of_agents, color = strategy)) +
-  geom_point(alpha = 0.1, size = 1) +
+  geom_point(alpha = 0.1, size = 0.5) +
   geom_line(data = long_means, linewidth = 1.5)

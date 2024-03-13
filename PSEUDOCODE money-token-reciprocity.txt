@@ -1,28 +1,201 @@
-PSEUDOCODE money-token-reciprocity
+HIGH-LEVEL DESCRIPTION:
 
-# create agents
-
-   create agent types
-
-# define main helping action
-groom
-
-# define strategies
+At Setup:
 
 
-# Action sequence:
 
-to run every turn:
-  ask links [ die ]
+In every round of the simulation:
 
-  ask turtles [
-    find-partner
-    interact
+1. all agents are matched with one other, selected randomly
+
+2. all agents interact with their partners, in random other
+	depending on their strategy, agents have a choice between helping their current partner or not. this is captured by two procedures:
+		help_partner(): 
+			acting agent's fitness is reduced by cost
+			partner's fitness is increased by benefit
+		do_not_help()
+			there is no change in fitness for either the acting agent or the partner.
+			if an agent did not act and their partner is of the "Grudger" type, the partner adds the agent to a blacklist		The decision procedure for each strategy is:
+		interact_based_on_strategy():
+			"Sucker": always helps partner in every interaction
+			"Cheater": never helps partner
+			"Grudger": helps the current partner if it not in the blacklist; otherwise, doesn't help
+			"Token": helps the current partner only if the acting agent has no tokens and the partner has a token; in that case, they swap tokens
+			"RLM": helps only if the current partner has Balance > 0; in that case, their balance is increased by one and the partner's balance is decreased by one
+
+3. agents evolve: the least fit agent is removed, and a new agent is created. The new agent has fitness equal to the population average and adopts a random strategy.
+	
+4. metrics are captured: number of surviving agents adopting each strategy, total welfare for each strategy.
+
+
+
+
+
+SEE ONLINE PSEUDOED
+
+
+
+the central agent action is to either help the partner, or not. 
+groom: 
+	fitness - cost to helper
+		fitness + benefit to helped
+not groom: nothing happens (but grudger memory)
+
+the choice of action depends on the agent strategy:
+	"sucker" agents always helps
+	"cheater" agent never helps
+	"gruger" agent only helps if partner is not on memory
+	"token" agent only helps if 
+		1. agent does not have a token
+		2. current parter has a token
+		in that case, sawp
+	"RLM" agent
+
+
+
+PSEUDOCODE - money-token-reciprocity
+(presumes an agent-based framework with a global environment and capable of handling interactions between pairs of agents)
+
+# Define environment attributes: 
+	Population 		# integer. Default value = 100
+	Cost			# float. Default value = 1
+	Benefit			# float. Relevant values = anything higher than cost 
+	memory_capacity 	# integer (maximum number of agents in grudger memory). Relevant values = between zero and population size
+	token_share 		# float between 0 and 1 (initial endowment of tokens). Optimal value = 50%
+	RLM_share		# float between 0 and 1 (initial endowment of RLM balances). Optimal value = 100%
+	replacement_rate 	# percentage (share of agents that are replaced at every time step). Default rate = 1%
+	available_strategies	# list including one of more of the following five strings: "Sucker", "Cheater", "Grudger", "Token", "RLM"
+	agent_list		# list containing agent IDs
+	counter			# generic increasing counter for new agent creation. Initialized at 0.
+	average_fitness		# sum of total fitness of all agents, divided by population
+	welfare_*		# sum of fitness of all agents adopting strategy *
+				
+# Define possible agent attributes:
+	ID			# ID of this agent
+	strategy		# this agent's strategy 
+	current_partner		# ID of another agent
+	blacklist		# a list containing IDs of other agents
+	token?			# a boolean with TRUE representing an agent in ownership of a token, and FALSE an agent without one
+	balance			# integer bigger than or equal to zero, representing the agent's "help ledger"
+	fitness			# float
+
+# Create new agents: each agent has a unique sequential ID and a strategy. The function below is executed once per member of the population:
+	function create_agents_at_setup():
+		ID ← counter
+		fitness ← 0
+		current_partner ← NA
+		strategy ← random choice from available_strategies
+
+		CASE strategy = "Grudger" :
+			blacklist ← []
+		CASE strategy = "Token" :
+			IF random < token_share:
+				token? ← TRUE
+			ELSE
+				token? ← FALSE
+		CASE strategy = "RLM" : 
+			IF random < RLM_share:
+				balance ← 1
+			ELSE
+				balance ← 0
+	
+		counter += 1
+
+# Define agent matching routine: for each unmatched agent, find a partner for the duration of the current round of the simulation 
+Function find partner
+	function find_partner():
+		# Iterate through agents
+		FOR ID in agent_list:
+			IF current_patner != NA :
+				go to next agent
+			ELSE
+				select one other_agent at random
+				IF other_agent[current_partner] != NA :
+					current_partner ← other_agent[ID]
+					other_agent[current_partner] ← ID
+				ELSE 
+					select one other_agent at random
+
+	
+
+# Define the two main choices of action available to agents: "help partner" or "do not help"
+
+function help_partner(): # acting agent pays cost and provides a benefit to the partner
+	fitness = benefit - cost
+	partner.fitness = benefit + benefit
+
+function do_nothing():	 # acting agent does not act (no cost is paid, no benefit is provided to partner). The following helper function makes sure that the agent's current partner, who did not receive help, if he is of the "Grudger" type, remembers the unhelpful agent
+	IF current_partner[strategy] = "Grudger" :
+		add ID to current_partner[memory]
+
+# define actions taken according to strategy
+function act_based_on_Strategy():
+
+	CASE strategy = "Sucker" # Sucker agents help in every interaction
+		help_partner()
+	CASE strategy = "Cheater" # Cheater agents never help in every interaction
+		do_nothing()
+	CASE strategy = "Grudger"
+		IF partner NOT IN memory :
+			help_partner()
+		ELSE 
+			do_nothing()
+	CASE strategy = "Token" : 
+		IF partner[token?] = TRUE :
+			help_partner()
+			partner[token] ← FALSE
+			has-token? ← TRUE
+		ELSE
+			do_nothing()
+
+	CASE strategy = "RLM" : 
+		IF partner.balance > 0 :
+			help_partner()
+		ELSE 
+			do_nothing()
+
+# At every turn, run the two following action sequences:
+
+## Matching: create new random pairs between all agents
+	for ID in agent_list:
+		select another agent ID at random
+			IF other_agent[ID][partner] = NONE THEN set current_partner other_Agent[ID]
+			ELSE
+
+## Interaction: each agent interacts with its pair according to its strategy
+	for ID in agent_list:
+		act_based_on_strategy()
 
 
 # Learning and replacement: eliminate agent with lowest fitness, create new agent with average fitness and random strategy
 evolve
+	// kill off agent with lowest fitness:
 
+	// create-new_agent_at_evolution:
+		fitness ← average_fitness
+		strategy ← random choice from available_trategies
+		ID ← counter
+	
+		CASE strategy = "Grudger" :
+			blacklist ← []
 
+		CASE strategy = "Token" :
+			IF random < token_share:
+				token? ← TRUE
+			ELSE
+				token? ← FALSE
+
+		CASE strategy = "RLM" : 
+			IF random < RLM_share:
+				balance ← 0
+			ELSE
+				balance ← 0
+	
+		counter += 1
 
 # Suggested monitors: welfare per strategy, total welfare, number of surviving agents adopting each strategy
+
+
+
+
+
