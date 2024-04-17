@@ -1,4 +1,4 @@
-globals [ benefit cost average-fitness ]
+globals [ benefit cost average-agent-fitness ]
 turtles-own [ fitness memory score balance strategy current-partner ]
 breed [ cooperators cooperator ]
 breed [ defectors defector ]
@@ -8,38 +8,39 @@ breed [ moneys money ]
 
 to setup
   clear-all
-  reset-ticks
+
   set cost 1
   set benefit cost * benefit-to-cost-ratio
-  create-cooperators N-coop [turtle-setup]
-  create-defectors N-defect [turtle-setup]
-  create-directs N-direct [turtle-setup]
-  create-indirects N-indirect [turtle-setup]
-  create-moneys N-money [turtle-setup]
 
-end
+  create-cooperators N-coop
+  create-defectors N-defect
+  create-directs N-direct
+  create-indirects N-indirect
+  create-moneys N-money
 
-to turtle-setup
+  ask turtles [
     set fitness 0
     set memory []
-    set score 0
-    set balance 0
+    set score initial-reputation
+    set balance initial-money
     fd 5
+  ]
+
+  reset-ticks
 end
 
 to go
+
   ask turtles [ set current-partner one-of other turtles ]
   ask cooperators [ cooperate ]
   ask defectors [ defect ]
   ask directs [ ifelse not member? current-partner memory [ cooperate ][ defect ] ]
   ask indirects [ ifelse [score] of current-partner > reputation-threshold [ cooperate ][ defect ] ]
-  ask moneys [ ifelse [balance] of current-partner > reputation-threshold [ cooperate ][ defect ] ]
-  set average-fitness sum [fitness] of turtles / count turtles
+  ask moneys [ ifelse [balance] of current-partner > debt-threshold [ cooperate ][ defect ] ]
 
-  if evolution? [
-    ask one-of turtles with [fitness < average-fitness] [die]
-    ask one-of turtles with [fitness > average-fitness] [hatch 1]
-  ]
+  set average-agent-fitness sum [fitness] of turtles / count turtles
+  if evolution? [ evolve ]
+  if learning? [ learn ]
 
   tick
 end
@@ -53,7 +54,6 @@ to cooperate
     set fitness fitness + benefit
     set balance balance - 1
   ]
-
 end
 
 
@@ -64,12 +64,21 @@ to defect
   ]
 end
 
+
+to evolve
+  ask one-of turtles with [fitness <= average-agent-fitness] [die] ;    alternative: ask one-of turtles with [fitness = min [fitness] of turtles ] [die]
+  ask one-of turtles with [fitness >= average-agent-fitness] [hatch 1]
+end
+
+to learn
+  ask one-of turtles [ if fitness < average-agent-fitness [ set breed [breed] of one-of turtles with [fitness > average-agent-fitness] ] ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-253
-103
-294
-145
+248
+38
+289
+80
 -1
 -1
 1.0
@@ -202,87 +211,57 @@ sum [balance] of turtles
 1
 11
 
-SLIDER
-60
-209
-232
-242
-reputation-threshold
-reputation-threshold
--25
-25
--1.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-60
-245
-232
-278
-balance-threshold
-balance-threshold
--25
-25
--1.0
-1
-1
-NIL
-HORIZONTAL
-
 INPUTBOX
-221
-32
-273
-92
+214
+26
+266
+86
 N-coop
-99.0
+0.0
 1
 0
 Number
 
 INPUTBOX
-277
-32
-332
-92
+270
+26
+325
+86
 N-defect
-99.0
+20.0
 1
 0
 Number
 
 INPUTBOX
-9
-105
-68
-165
+8
+120
+67
+180
 N-direct
-99.0
+0.0
 1
 0
 Number
 
 INPUTBOX
+8
+206
 71
-105
-134
-165
+266
 N-indirect
-99.0
+50.0
 1
 0
 Number
 
 INPUTBOX
-136
-105
-200
-165
+8
+293
+72
+353
 N-money
-99.0
+0.0
 1
 0
 Number
@@ -299,26 +278,26 @@ average memory length
 11
 
 SLIDER
-60
-284
-232
-317
+74
+134
+246
+167
 memory-size
 memory-size
 0
 count turtles
-693.0
+100.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-820
-27
-1219
-271
-fitness - deviations from average
+1147
+32
+1459
+268
+per-agent fitness: deviations from average
 NIL
 NIL
 0.0
@@ -329,28 +308,28 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -955883 true "" "plot ( sum [fitness] of directs / count directs ) - average-fitness"
-"indirects" 1.0 0 -1184463 true "" "plot ( sum [fitness] of indirects / count indirects ) - average-fitness"
-"moneys" 1.0 0 -13345367 true "" "plot ( sum [fitness] of moneys / count moneys ) - average-fitness"
-"pen-3" 1.0 0 -13840069 true "" "plot ( sum [fitness] of cooperators / count cooperators ) - average-fitness"
-"pen-4" 1.0 0 -7500403 true "" "plot ( sum [fitness] of defectors / count defectors) - average-fitness"
+"default" 1.0 0 -955883 true "" "carefully [ plot ( sum [fitness] of directs / count directs ) - average-agent-fitness ][]"
+"indirects" 1.0 0 -1184463 true "" "carefully [ plot ( sum [fitness] of indirects / count indirects ) - average-agent-fitness ][]"
+"moneys" 1.0 0 -13345367 true "" "carefully [ plot ( sum [fitness] of moneys / count moneys ) - average-agent-fitness ][]"
+"pen-3" 1.0 0 -13840069 true "" "carefully [ plot ( sum [fitness] of cooperators / count cooperators ) - average-agent-fitness ][]"
+"pen-4" 1.0 0 -7500403 true "" "carefully [ plot ( sum [fitness] of defectors / count defectors) - average-agent-fitness ][]"
 
 MONITOR
 953
 281
-1051
+1088
 326
 NIL
-average-fitness
+average-agent-fitness
 1
 1
 11
 
 PLOT
-361
-332
-561
-482
+572
+333
+772
+483
 balances
 NIL
 NIL
@@ -369,10 +348,10 @@ PENS
 "pen-4" 1.0 0 -7500403 true "" "plot sum [balance] of defectors"
 
 SWITCH
-954
-499
-1060
-532
+914
+454
+1007
+487
 evolution?
 evolution?
 1
@@ -380,10 +359,10 @@ evolution?
 -1000
 
 PLOT
-1063
-435
-1516
-555
+1020
+367
+1473
+576
 surviving strategies
 NIL
 NIL
@@ -402,9 +381,9 @@ PENS
 "money users" 1.0 0 -13791810 true "" "plot count moneys"
 
 PLOT
-581
+362
 333
-781
+562
 483
 scores
 NIL
@@ -422,6 +401,83 @@ PENS
 "pen-2" 1.0 0 -13791810 true "" "plot sum [score] of moneys"
 "pen-3" 1.0 0 -7500403 true "" "plot sum [score] of defectors"
 "pen-4" 1.0 0 -13840069 true "" "plot sum [score] of cooperators"
+
+PLOT
+808
+32
+1135
+273
+per-agent fitness
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -955883 true "" "carefully [ plot sum [fitness] of directs / count directs ] []"
+"pen-1" 1.0 0 -1184463 true "" "carefully [ plot sum [fitness] of indirects / count indirects ][]"
+"pen-2" 1.0 0 -13345367 true "" "carefully [ plot sum [fitness] of moneys / count moneys ][]"
+"pen-3" 1.0 0 -13840069 true "" "carefully [ plot sum [fitness] of cooperators / count cooperators ][]"
+"pen-4" 1.0 0 -7500403 true "" "carefully [ plot sum [fitness] of defectors / count defectors ][]"
+
+SWITCH
+914
+492
+1007
+525
+learning?
+learning?
+0
+1
+-1000
+
+INPUTBOX
+168
+207
+274
+267
+reputation-threshold
+-1.0
+1
+0
+Number
+
+INPUTBOX
+74
+207
+164
+267
+initial-reputation
+0.0
+1
+0
+Number
+
+INPUTBOX
+75
+293
+163
+353
+initial-money
+1.0
+1
+0
+Number
+
+INPUTBOX
+167
+293
+273
+353
+debt-threshold
+0.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
