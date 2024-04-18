@@ -1,5 +1,5 @@
 ; pending: review evolution/learning to match Nowak 1998 proportional reproduction
-
+extensions [ rnd ]
 globals [ benefit cost average-agent-fitness ]
 turtles-own [ fitness memory score balance strategy current-partner ]
 breed [ cooperators cooperator ]
@@ -33,7 +33,11 @@ end
 
 to go
 
-  ask turtles [ set current-partner one-of other turtles ]
+
+  ask turtles [
+    set fitness 0 ;testing
+    set current-partner one-of other turtles
+  ]
   ask cooperators [ cooperate ]
   ask defectors [ defect ]
   ask directs [ ifelse not member? current-partner memory [ cooperate ][ defect ] ]
@@ -41,9 +45,8 @@ to go
   ask moneys [ ifelse [balance] of current-partner > debt-threshold [ cooperate ][ defect ] ]
 
   set average-agent-fitness sum [fitness] of turtles / count turtles
-  if evolution? [ evolve ]
-  if learning? [ learn ]
 
+  if offspring? [ spring-off ]
   tick
 end
 
@@ -67,14 +70,34 @@ to defect
 end
 
 
-to evolve
-  ask one-of turtles with [fitness <= average-agent-fitness] [die] ;    alternative: ask one-of turtles with [fitness = min [fitness] of turtles ] [die]
-  ask one-of turtles with [fitness >= average-agent-fitness] [hatch 1]
+
+to spring-off ; (Nowak 2005 Evolutionary updating: "in each time step a random individual is chosen to die; the neighbors compete for the empty site proportional to their fitness")
+  ; or nowak 1998?
+  let strategy-list (list cooperators defectors directs indirects moneys) show strategy-list ; cooperators defectors directs indirects moneys
+  let payoff-proportional-probabilities map [ x -> sum [fitness] of x / sum [fitness] of turtles ] strategy-list show payoff-proportional-probabilities
+  let pairs (map list strategy-list payoff-proportional-probabilities) show pairs
+
+  ask turtles [
+    set breed first rnd:weighted-one-of-list pairs [ [p] -> last p ]
+    if mutation? [ if random-float 1 < 0.001 [ set breed one-of strategy-list show breed ]]
+  ]
+
 end
 
-to learn
-  ask one-of turtles [ if fitness < average-agent-fitness [ set breed [breed] of one-of turtles with [fitness > average-agent-fitness] ] ]
-end
+
+;DEPRECATED: naive evolution methods
+
+;to evolve
+;  ask one-of turtles with [fitness <= average-agent-fitness] [die] ;    alternative: ask one-of turtles with [fitness = min [fitness] of turtles ] [die]
+;  ask one-of turtles with [fitness >= average-agent-fitness] [hatch 1]
+;end
+;
+;to learn
+;  ask one-of turtles [ if fitness < average-agent-fitness [ set breed [breed] of one-of turtles with [fitness > average-agent-fitness] ] ]
+;end
+
+  ;if evolution? [ evolve ]
+  ;if learning? [ learn ]
 @#$#@#$#@
 GRAPHICS-WINDOW
 248
@@ -288,7 +311,7 @@ memory-size
 memory-size
 0
 count turtles
-8.0
+250.0
 1
 1
 NIL
@@ -350,13 +373,13 @@ PENS
 "pen-4" 1.0 0 -7500403 true "" "plot sum [balance] of defectors"
 
 SWITCH
-830
-440
-923
-473
+1389
+447
+1482
+480
 evolution?
 evolution?
-0
+1
 1
 -1000
 
@@ -427,13 +450,13 @@ PENS
 "pen-4" 1.0 0 -7500403 true "" "carefully [ plot sum [fitness] of defectors / count defectors ][]"
 
 SWITCH
-830
-478
-923
-511
+1389
+485
+1482
+518
 learning?
 learning?
-0
+1
 1
 -1000
 
@@ -530,6 +553,28 @@ Background mechanics (always active):\nWhen an agent cooperates with a partner:\
 10
 0.0
 1
+
+SWITCH
+821
+435
+926
+468
+offspring?
+offspring?
+0
+1
+-1000
+
+SWITCH
+821
+475
+926
+508
+mutation?
+mutation?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -29,7 +29,7 @@ turtles-own [
   my-k
 ]
 
-; Set up environment parameters: strategies, benefit/cost, payoff evolution list
+; SET UP ENVIRONMENT AND PARAMETERS: strategies, benefit/cost, payoff evolution list
 to setup
   clear-all
 
@@ -44,13 +44,12 @@ to setup
     set my-k one-of k-list
   ]
 
-  set k-payoffs-probs n-values 12 [0] ; [ 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 ]
+  set k-payoffs-probs n-values 12 [0]
 
   reset-ticks
 end
 
-; Define base actions:
-
+; DEFINE BASE ACTIONS:
 to cooperate
   set fitness fitness - cost
   set score-balance score-balance + 1
@@ -68,9 +67,9 @@ to defect
   set defections-this-round defections-this-round + 1
 end
 
-; Each turn represents one generation. Each agent acts once and, on average, is chosen as partner once. This is an approximation of Nowak 1998.
+; DYNAMICS (an approximation of Nowak 1998):
+; Each turn represents one generation. Each agent acts once and, on average, is chosen as partner once (Nowak's m = 100%*)
 to go
-
   ; Reset reporters:
   set cooperations-this-round 0
   set defections-this-round 0
@@ -99,7 +98,7 @@ to go
   tick
 end
 
-; Define learning/evolution mechanism: strategy reproduction proportional to fitness (Nowak 1998) using random-weigthed choices (RND library)
+; Define learning/evolution mechanism: strategy reproduction proportional to fitness (Nowak 1998) using random-weigthed choices (RND library). To confirm in light of Nowak 2005 attachments.
 to spring-off
   set k-payoffs-probs map get-k-probs k-list
   let pairs (map list k-list k-payoffs-probs)
@@ -288,10 +287,10 @@ population
 Number
 
 TEXTBOX
-17
-299
-512
-531
+79
+281
+452
+528
 Nowak 1998: setup\nThe strategies are given by ki and the image levels by si. At the beginning of each generation, the image levels of all players are zero (assuming that children do not inherit the image of their parents). In succession, m donor–recipient pairs are chosen. A donor, i, cooperates with a recipient, j, if ki ≤ sj. The fitness of a player is given by the total number of points received during the m interactions. Some players may never be chosen, in which case their payoff from the game will be zero. On average, a player will be chosen 2m/n times, either as donor or as recipient. At the end of each generation, players leave offspring in proportion to the their fitness. We find that if the game is played for many generations, then eventually all players will adopt the same strategy. If the k value of this strategy is 0 or less then cooperation is established; if the value is 1 or more then defection has won. Cooperation is more likely to win if the number of interactions, m, per generation is large.
 12
 0.0
@@ -448,25 +447,15 @@ stopper?
 -1000
 
 INPUTBOX
-19
-197
-88
-257
+26
+189
+95
+249
 initial-scores
 0.0
 1
 0
 Number
-
-TEXTBOX
-102
-206
-188
-245
-recommended: either zero, or (random 1 - 3)
-10
-0.0
-1
 
 MONITOR
 661

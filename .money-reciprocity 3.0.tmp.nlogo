@@ -1,125 +1,109 @@
-; some results under evaluation (disregarding visibility for now - only comparing the image-score and money-balance mechanisms)
-; money-cooperation more difficult to achieve, and more unstable, than recip-coop;
-; when achieved, cooperation frequencies are lower (?)
-; for very high benefit/cost - easier to establish money cooperation
-; also argues for liquidity issues? where free-riders»
-; to do:
-; force k=0
-; get behaviorspace overview
-; check sensitivity to initial score spread
-; how are balances distributed in each case?
-; debt is common! and useful-?
+; pending: review evolution/learning to match Nowak 1998 proportional reproduction
+extensions [ rnd ]
+globals [ benefit cost average-agent-fitness ]
+turtles-own [ fitness memory score balance strategy current-partner ]
+breed [ cooperators cooperator ]
+breed [ defectors defector ]
+breed [ directs direct ]
+breed [ indirects indirect ]
+breed [ moneys money ]
 
-extensions [rnd]
-
-globals [
-  benefit cost
-  average-agent-fitness
-  k-list
-  k-payoffs-probs
-  cooperations-this-round defections-this-round
-]
-
-turtles-own [
-  fitness
-  memory
-  strategy
-  score-balance
-  current-partner
-  my-k
-]
-
-; Set up environment parameters: strategies, benefit/cost, payoff evolution list
 to setup
   clear-all
 
   set cost 1
   set benefit cost * benefit-to-cost-ratio
 
-  set k-list (range -5 7)
+  create-cooperators N-coop
+  create-defectors N-defect
+  create-directs N-direct
+  create-indirects N-indirect
+  create-moneys N-money
 
-  create-turtles population [
+  ask turtles [
     set fitness 0
-    set score-balance random 3 - 1
-    set my-k one-of k-list
+    set memory []
+    set score initial-reputation
+    set balance initial-money
+    fd 5
   ]
-
-  set k-payoffs-probs n-values 12 [0] ; [ 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 0.08333333333333333 ]
 
   reset-ticks
 end
 
-; Define base actions:
-
-to cooperate
-  set fitness fitness - cost
-  set score-balance score-balance + 1
-  ask current-partner [
-    set fitness fitness + benefit
-    if money? [set score-balance score-balance - 1]
-  ]
-  ; reporter:
-  set cooperations-this-round cooperations-this-round + 1
-end
-
-to defect
-  if not money? [set score-balance score-balance - 1]
-  ; reporter:
-  set defections-this-round defections-this-round + 1
-end
-
-; Each turn represents one generation. Each agent acts once and, on average, is chosen as partner once. This is an approximation of Nowak 1998.
 to go
 
-  ; Reset reporters:
-  set cooperations-this-round 0
-  set defections-this-round 0
 
-  ; Prime agents and find a random match for this round:
   ask turtles [
-    set fitness 0
+    set fitness 0 ;testing
     set current-partner one-of other turtles
   ]
+  ask cooperators [ cooperate ]
+  ask defectors [ defect ]
+  ask directs [ ifelse not member? current-partner memory [ cooperate ][ defect ] ]
+  ask indirects [ ifelse [score] of current-partner > reputation-threshold [ cooperate ][ defect ] ]
+  ask moneys [ ifelse [balance] of current-partner > debt-threshold [ cooperate ][ defect ] ]
 
-  ; Agents act: they help if the partner's score (Nowak) or balance (Bigoni) is higher than their personal threshold:
-  ask turtles [ ifelse [ score-balance ] of current-partner >= my-k [ cooperate ][ defect ] ]
+  set average-agent-fitness sum [fitness] of turtles / count turtles
 
-  ; Scores and fitnesses are adjusted to maintain parameters (Nowak 1998)
-  ask turtles [
-    if score-balance  > 5 [set score-balance 5]
-    if score-balance  < -5 [set score-balance -5]
-    set fitness fitness + 1 ; added to avoid negative balances, as per Nowak 1998
-  ]
-  ; Set average-agent-fitness sum [fitness] of turtles / count turtles
-
-  ; Run learning/evolution: procedure
   if offspring? [ spring-off ]
-
-  if stopper? and ticks > 500 [stop]
   tick
 end
 
-; Define learning/evolution mechanism: strategy reproduction proportional to fitness (Nowak 1998) using random-weigthed choices (RND library)
-to spring-off
-  set k-payoffs-probs map get-k-probs k-list
-  let pairs (map list k-list k-payoffs-probs)
-  ;type first rnd:weighted-one-of-list pairs [ [p] -> last p ]
 
-  ask turtles [
-    set my-k first rnd:weighted-one-of-list pairs [ [p] -> last p ]
-    if mutation? [ if random-float 1 < 0.001 [ set my-k one-of k-list ]]
+to cooperate
+  set fitness fitness - cost
+  set score score + 1
+  set balance balance + 1
+  ask current-partner [
+    set fitness fitness + benefit
+    set balance balance - 1
   ]
 end
 
-to-report get-k-probs [ x ]
-  report sum [fitness] of turtles with [my-k = x] / sum [fitness] of turtles
+
+to defect
+  set score score - 1
+  ask current-partner [
+    if length memory < memory-size [ set memory lput myself memory ]
+  ]
 end
+
+
+
+to spring-off ; (Nowak 2005 Evolutionary updating: "in each time step a random individual is chosen to die; the neighbors compete for the empty site proportional to their fitness")
+  ; or nowak 1998?
+  let strategy-list (list cooperators defectors directs indirects moneys) show strategy-list ; cooperators defectors directs indirects moneys
+  let payoff-proportional-probabilities map [ x -> sum [fitness] of x / sum [fitness] of turtles ] strategy-list show payoff-proportional-probabilities
+  let pairs (map list strategy-list payoff-proportional-probabilities) show pairs
+
+  ask turtles [
+    set breed first rnd:weighted-one-of-list pairs [ [p] -> last p ]
+    if mutation? [ if random-float 1 < 0.001 [ set breed one-of strategy-list show breed ]]
+  ]
+
+end
+
+
+;DEPRECATED: naive evolution methods
+
+;to evolve
+;  ask one-of turtles with [fitness <= average-agent-fitness] [die] ;    alternative: ask one-of turtles with [fitness = min [fitness] of turtles ] [die]
+;  ask one-of turtles with [fitness >= average-agent-fitness] [hatch 1]
+;end
+;
+;to learn
+;  ask one-of turtles [ if fitness < average-agent-fitness [ set breed [breed] of one-of turtles with [fitness > average-agent-fitness] ] ]
+;end
+
+  ;if evolution? [ evolve ]
+  ;if learning? [ learn ]
 @#$#@#$#@
 GRAPHICS-WINDOW
-223
-25
-264
-67
+248
+38
+289
+80
 -1
 -1
 1.0
@@ -143,10 +127,10 @@ ticks
 30.0
 
 BUTTON
-19
-29
-82
-62
+8
+27
+71
+60
 NIL
 setup\n
 NIL
@@ -160,10 +144,10 @@ NIL
 1
 
 BUTTON
-84
-29
-147
-62
+73
+27
+136
+60
 NIL
 go
 NIL
@@ -177,10 +161,10 @@ NIL
 1
 
 BUTTON
-150
-29
-213
-62
+139
+27
+202
+60
 NIL
 go
 T
@@ -194,11 +178,11 @@ NIL
 1
 
 PLOT
-527
-14
-925
-256
-total fitness by strategy
+353
+31
+806
+273
+total fitness
 NIL
 NIL
 0.0
@@ -209,318 +193,388 @@ true
 true
 "" ""
 PENS
-"-5 (cooperators)" 1.0 0 -13840069 true "" "plot sum [fitness] of turtles with [my-k = -5]"
-"-4" 1.0 0 -1184463 true "" "plot sum [fitness] of turtles with [my-k = -4]"
-"-3" 1.0 0 -987046 true "" "plot sum [fitness] of turtles with [my-k = -3]"
-"-2" 1.0 0 -723837 true "" "plot sum [fitness] of turtles with [my-k = -2]"
-"-1" 1.0 0 -526419 true "" "plot sum [fitness] of turtles with [my-k = -1]"
-"0" 1.0 0 -13345367 true "" "plot sum [fitness] of turtles with [my-k = 0]"
-"1" 1.0 0 -612749 true "" "plot sum [fitness] of turtles with [my-k = 1]"
-"2" 1.0 0 -817084 true "" "plot sum [fitness] of turtles with [my-k = 2]"
-"3" 1.0 0 -817084 true "" "plot sum [fitness] of turtles with [my-k = 3]"
-"4" 1.0 0 -955883 true "" "plot sum [fitness] of turtles with [my-k = 4]"
-"5" 1.0 0 -3844592 true "" "plot sum [fitness] of turtles with [my-k = 5]"
-"6 (defectors)" 1.0 0 -12895429 true "" "plot sum [fitness] of turtles with [my-k = 6]"
-
-PLOT
-933
-14
-1348
-254
-strategy distribution
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"-5 (cooperators)" 1.0 0 -13840069 true "" "plot count turtles with [my-k = -5]"
-"-4" 1.0 0 -1184463 true "" "plot count turtles with [my-k = -4]"
-"-3" 1.0 0 -987046 true "" "plot count turtles with [my-k = -3]"
-"-2" 1.0 0 -723837 true "" "plot count turtles with [my-k = -2]"
-"-1" 1.0 0 -526419 true "" "plot count turtles with [my-k = -1]"
-"0" 1.0 0 -13345367 true "" "plot count turtles with [my-k = 0]"
-"1" 1.0 0 -408670 true "" "plot count turtles with [my-k = 1]"
-"2" 1.0 0 -612749 true "" "plot count turtles with [my-k = 2]"
-"3" 1.0 0 -817084 true "" "plot count turtles with [my-k = 3]"
-"4" 1.0 0 -955883 true "" "plot count turtles with [my-k = 4]"
-"5" 1.0 0 -6995700 true "" "plot count turtles with [my-k = 5]"
-"6 (defectors)" 1.0 0 -12895429 true "" "plot count turtles with [my-k = 6]"
+"direct-reciprocators" 1.0 0 -955883 true "" "plot sum [fitness] of directs"
+"indirect-reciprocators" 1.0 0 -1184463 true "" "plot sum [fitness] of indirects"
+"money-users" 1.0 0 -13791810 true "" "plot sum [fitness] of moneys"
+"defectors" 1.0 0 -7500403 true "" "plot sum [fitness] of defectors"
+"cooperators" 1.0 0 -13840069 true "" "plot sum [fitness] of cooperators"
 
 SLIDER
-20
-84
-192
-117
+17
+66
+189
+99
 benefit-to-cost-ratio
 benefit-to-cost-ratio
 0
-100
-100.0
+20
+20.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-772
-473
-870
-518
+538
+278
+636
+323
 average scores
-sum [score-balance] of turtles / count turtles
+sum [score] of turtles / count turtles
+1
+1
+11
+
+MONITOR
+645
+277
+730
+322
+total balances
+sum [balance] of turtles
 1
 1
 11
 
 INPUTBOX
-25
-125
-93
-185
-population
-100.0
+214
+26
+266
+86
+N-coop
+50.0
 1
 0
 Number
 
-TEXTBOX
-17
-299
-512
-531
-Nowak 1998: setup\nThe strategies are given by ki and the image levels by si. At the beginning of each generation, the image levels of all players are zero (assuming that children do not inherit the image of their parents). In succession, m donor–recipient pairs are chosen. A donor, i, cooperates with a recipient, j, if ki ≤ sj. The fitness of a player is given by the total number of points received during the m interactions. Some players may never be chosen, in which case their payoff from the game will be zero. On average, a player will be chosen 2m/n times, either as donor or as recipient. At the end of each generation, players leave offspring in proportion to the their fitness. We find that if the game is played for many generations, then eventually all players will adopt the same strategy. If the k value of this strategy is 0 or less then cooperation is established; if the value is 1 or more then defection has won. Cooperation is more likely to win if the number of interactions, m, per generation is large.
-12
-0.0
+INPUTBOX
+270
+26
+325
+86
+N-defect
+50.0
 1
+0
+Number
+
+INPUTBOX
+19
+163
+78
+223
+N-direct
+50.0
+1
+0
+Number
+
+INPUTBOX
+17
+265
+80
+325
+N-indirect
+50.0
+1
+0
+Number
+
+INPUTBOX
+17
+364
+81
+424
+N-money
+50.0
+1
+0
+Number
+
+MONITOR
+397
+279
+531
+324
+average memory length
+(sum [length memory] of turtles) / count turtles
+1
+1
+11
+
+SLIDER
+85
+177
+257
+210
+memory-size
+memory-size
+0
+count turtles
+250.0
+1
+1
+NIL
+HORIZONTAL
 
 PLOT
-527
-321
-727
-471
-histogram k
+1147
+32
+1459
+268
+per-agent fitness: deviations from average
 NIL
 NIL
 0.0
 10.0
 0.0
 10.0
-true
-false
-"set-plot-pen-mode 1\nset-plot-x-range -6 7\nset-histogram-num-bars 12" ""
-PENS
-"default" 1.0 1 -16777216 true "" "histogram [my-k] of turtles"
-
-PLOT
-730
-321
-930
-471
-histogram scores
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"set-plot-pen-mode 1\nset-plot-x-range -6 7\nset-histogram-num-bars 12" ""
-PENS
-"default" 1.0 1 -16777216 true "" "histogram [score-balance] of turtles"
-
-PLOT
-935
-321
-1347
-471
-cooperation frequency
-NIL
-NIL
-0.0
-10.0
-0.0
-1.0
 true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "carefully [ plot cooperations-this-round / ( cooperations-this-round + defections-this-round ) ] []"
+"default" 1.0 0 -955883 true "" "carefully [ plot ( sum [fitness] of directs / count directs ) - average-agent-fitness ][]"
+"indirects" 1.0 0 -1184463 true "" "carefully [ plot ( sum [fitness] of indirects / count indirects ) - average-agent-fitness ][]"
+"moneys" 1.0 0 -13345367 true "" "carefully [ plot ( sum [fitness] of moneys / count moneys ) - average-agent-fitness ][]"
+"pen-3" 1.0 0 -13840069 true "" "carefully [ plot ( sum [fitness] of cooperators / count cooperators ) - average-agent-fitness ][]"
+"pen-4" 1.0 0 -7500403 true "" "carefully [ plot ( sum [fitness] of defectors / count defectors) - average-agent-fitness ][]"
 
 MONITOR
-1091
-474
-1218
-519
-cooperation frequency
-cooperations-this-round / ( cooperations-this-round + defections-this-round )
-1
-1
-11
-
-TEXTBOX
-28
-597
-1195
-697
-We observe endless cycles of cooperation and defection. Cooperative populations are relatively stable if they consist of discriminating players with strategies such as k = 0 or −1. But after some time these populations are undermined (through random drift) by players with strategies such as k = −4 or −5, which are too cooperative. Then defectors, with strategies k = 4 or 5, can invade. These defectors can, in turn, be overcome by stern discriminators again. In the long run, cooperation is harmed by unconditional cooperators, because they enable defectors to invade. In the absence of unconditional cooperators, cooperative populations persist for much longer. a, The average k value of the population. b, The average payoff per individual, per generation. c, Frequency distribution of strategies sampled over many generations (t = 107). Parameter values are as for Fig. 1 , but m = 300 rounds per generation.\n\n
-10
-0.0
-1
-
-SWITCH
-202
-179
-295
-212
-mutation?
-mutation?
-0
-1
--1000
-
-TEXTBOX
-27
-657
-402
-1138
-interdependence: \n\nAnother interesting expansion of the basic model is to include strategies that consider both the recipient's and the donor's image score. We explored two types of strategies. ‘And’ strategies involve cooperation if the image score of the recipient is larger than a certain value and the image score of the donor is less than a certain value. The idea is that if an individual has already a high image score, it is not necessary to aim for a still higher image score (by helping others). On the other hand, ‘or’ strategies result in cooperation if the image score of the recipient is larger than a certain value or the image score of the donor is less than a certain value. Here the idea is that if an individual has a low image score it may be advantageous to increase the score by helping others regardless of how low their image score is. In both cases, highly cooperative societies form (Fig 4). If, in contrast, we simulate strategies that only consider their own image and do not take into account the image of the recipient, cooperation does not emerge.
-10
-0.0
-1
-
-TEXTBOX
-434
-659
-1037
-881
-analytical and/or balance?\n\nThe models above are based on computer simulations, but we can derive analytical insights from a simplified model. Suppose that there are only two image levels, 0 (for bad) and 1 (for good). The image of a player depends on his or her last action as a donor: players who defected have score 0, and players who cooperated have score 1. Let us only consider two types of player: first, defectors, who never provide assistance; and second, discriminators who help players having image 1, but not players having image 0. A given player knows the score of only a fraction, q, of the population. A discriminator who has no information on potential recipients will assume, with a certain probability, p, that they have image 1. In each round of the game all individuals of the population are chosen, each with the same probability of being a donor or a recipient. If w < 1 denotes the probability of another round, there are on average 1/(1 − w) rounds per generation. We have derived the equations (see Methods) that describe how the frequencies of discriminators and defectors change from one generation to the next. It should be stressed that discriminators are not ‘tit-for-tat’ players; tit-for-tat strategists base their decisions on their own previous experience with the co-player, whereas discriminators use the experience of others. This is an essential advantage for a player who interacts with many co-players but only a few times with each. (Such discriminators are also different from strategies based on ‘standing’27, which is an internal switch distinguishing between defection in response to a co-player's cooperation or defection.)
-10
-0.0
-1
-
-SWITCH
-202
-143
-295
-176
-offspring?
-offspring?
-0
-1
--1000
-
-SWITCH
-201
-84
-293
-117
-money?
-money?
-0
-1
--1000
-
-MONITOR
-586
-477
-671
-522
+914
+279
+1049
+324
 NIL
-count turtles
+average-agent-fitness
 1
 1
 11
 
+PLOT
+572
+333
+772
+483
+balances
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -13345367 true "" "plot sum [balance] of moneys"
+"pen-1" 1.0 0 -955883 true "" "plot sum [balance] of directs"
+"pen-2" 1.0 0 -1184463 true "" "plot sum [balance] of indirects"
+"pen-3" 1.0 0 -13840069 true "" "plot sum [balance] of cooperators"
+"pen-4" 1.0 0 -7500403 true "" "plot sum [balance] of defectors"
+
 SWITCH
-1366
-190
-1495
-223
-stopper?
-stopper?
+1389
+447
+1482
+480
+evolution?
+evolution?
+1
+1
+-1000
+
+PLOT
+936
+353
+1389
+562
+surviving strategies
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"cooperators" 1.0 0 -13840069 true "" "plot count cooperators"
+"defectors" 1.0 0 -7500403 true "" "plot count defectors"
+"direct reciprocators" 1.0 0 -955883 true "" "plot count directs"
+"indirect reciprocators" 1.0 0 -1184463 true "" "plot count indirects"
+"money users" 1.0 0 -13791810 true "" "plot count moneys"
+
+PLOT
+362
+333
+562
+483
+scores
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -955883 true "" "plot sum [score] of directs"
+"pen-1" 1.0 0 -1184463 true "" "plot sum [score] of indirects"
+"pen-2" 1.0 0 -13791810 true "" "plot sum [score] of moneys"
+"pen-3" 1.0 0 -7500403 true "" "plot sum [score] of defectors"
+"pen-4" 1.0 0 -13840069 true "" "plot sum [score] of cooperators"
+
+PLOT
+808
+32
+1135
+273
+per-agent fitness
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -955883 true "" "carefully [ plot sum [fitness] of directs / count directs ] []"
+"pen-1" 1.0 0 -1184463 true "" "carefully [ plot sum [fitness] of indirects / count indirects ][]"
+"pen-2" 1.0 0 -13345367 true "" "carefully [ plot sum [fitness] of moneys / count moneys ][]"
+"pen-3" 1.0 0 -13840069 true "" "carefully [ plot sum [fitness] of cooperators / count cooperators ][]"
+"pen-4" 1.0 0 -7500403 true "" "carefully [ plot sum [fitness] of defectors / count defectors ][]"
+
+SWITCH
+1389
+485
+1482
+518
+learning?
+learning?
 1
 1
 -1000
 
 INPUTBOX
-19
-197
-88
-257
-initial-scores
+177
+265
+283
+325
+reputation-threshold
+-1.0
+1
+0
+Number
+
+INPUTBOX
+83
+265
+173
+325
+initial-reputation
+0.0
+1
+0
+Number
+
+INPUTBOX
+84
+364
+172
+424
+initial-money
+1.0
+1
+0
+Number
+
+INPUTBOX
+176
+364
+282
+424
+debt-threshold
 0.0
 1
 0
 Number
 
 TEXTBOX
-102
-206
-188
-245
-recommended: either zero, or (random 1 - 3)
-10
-0.0
-1
-
-MONITOR
-661
-258
-753
-303
-overall welfare
-sum [fitness] of turtles
-1
-1
-11
-
-MONITOR
-1048
-519
-1180
-564
-NIL
-cooperations-this-round
-17
-1
-11
-
-MONITOR
-1181
-520
-1299
-565
-NIL
-defections-this-round
-17
-1
-11
-
-TEXTBOX
-302
-87
-500
-126
-Off: Nowak 1998 image-score replication\nOn: money-balance modification
+109
+116
+259
+134
+MECHANISMS:
 10
 0.0
 1
 
 TEXTBOX
-28
-578
-178
-596
-Nowak 1998: results
+37
+133
+274
+172
+Direct-reciprocators remember defectors and only help if current partner is not in memory
 10
 0.0
 1
+
+TEXTBOX
+37
+231
+260
+283
+Indirect Reciprocators only help agents with a reputation score higher than a threshold
+10
+0.0
+1
+
+TEXTBOX
+52
+332
+263
+371
+\"Money users\" only help agents with a \"money balance\" higher than a threshold
+10
+0.0
+1
+
+TEXTBOX
+51
+437
+271
+563
+Background mechanics (always active):\nWhen an agent cooperates with a partner:\n- the agent's reputation score is increased\n- the partner's money balance is decreased\n- the agent's money balance is increased\nWhen an agent does not cooperate:\n- the agent's reputation score is decreased\n- the agent enters partner's memory
+10
+0.0
+1
+
+SWITCH
+821
+435
+926
+468
+offspring?
+offspring?
+0
+1
+-1000
+
+SWITCH
+821
+475
+926
+508
+mutation?
+mutation?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
