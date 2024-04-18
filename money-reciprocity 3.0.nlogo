@@ -44,7 +44,8 @@ to go
   ask indirects [ ifelse [score] of current-partner > reputation-threshold [ cooperate ][ defect ] ]
   ask moneys [ ifelse [balance] of current-partner > debt-threshold [ cooperate ][ defect ] ]
 
-  set average-agent-fitness sum [fitness] of turtles / count turtles
+  ask turtles [ set fitness fitness + 1 ]
+  ;set average-agent-fitness sum [fitness] of turtles / count turtles
 
   if offspring? [ spring-off ]
   tick
@@ -242,7 +243,7 @@ INPUTBOX
 266
 86
 N-coop
-50.0
+0.0
 1
 0
 Number
@@ -253,7 +254,7 @@ INPUTBOX
 325
 86
 N-defect
-50.0
+100.0
 1
 0
 Number
@@ -264,7 +265,7 @@ INPUTBOX
 78
 223
 N-direct
-50.0
+0.0
 1
 0
 Number
@@ -275,7 +276,7 @@ INPUTBOX
 80
 325
 N-indirect
-50.0
+0.0
 1
 0
 Number
@@ -311,7 +312,7 @@ memory-size
 memory-size
 0
 count turtles
-250.0
+200.0
 1
 1
 NIL
@@ -572,7 +573,7 @@ SWITCH
 508
 mutation?
 mutation?
-0
+1
 1
 -1000
 
