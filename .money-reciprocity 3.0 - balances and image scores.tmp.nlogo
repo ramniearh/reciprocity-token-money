@@ -103,6 +103,7 @@ end
 to spring-off
   set k-payoffs-probs map get-k-probs k-list
   let pairs (map list k-list k-payoffs-probs)
+  ;type first rnd:weighted-one-of-list pairs [ [p] -> last p ]
 
   ask turtles [
     set my-k first rnd:weighted-one-of-list pairs [ [p] -> last p ]
