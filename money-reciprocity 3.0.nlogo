@@ -1,3 +1,5 @@
+; pending: review evolution/learning to match Nowak 1998 proportional reproduction
+
 globals [ benefit cost average-agent-fitness ]
 turtles-own [ fitness memory score balance strategy current-partner ]
 breed [ cooperators cooperator ]
@@ -183,17 +185,17 @@ benefit-to-cost-ratio
 benefit-to-cost-ratio
 0
 20
-3.0
+20.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-539
-280
-637
-325
+538
+278
+636
+323
 average scores
 sum [score] of turtles / count turtles
 1
@@ -201,10 +203,10 @@ sum [score] of turtles / count turtles
 11
 
 MONITOR
-648
-282
-733
-327
+645
+277
+730
+322
 total balances
 sum [balance] of turtles
 1
@@ -217,7 +219,7 @@ INPUTBOX
 266
 86
 N-coop
-0.0
+50.0
 1
 0
 Number
@@ -228,27 +230,27 @@ INPUTBOX
 325
 86
 N-defect
-20.0
+50.0
 1
 0
 Number
 
 INPUTBOX
-8
-120
-67
-180
+19
+163
+78
+223
 N-direct
-0.0
+50.0
 1
 0
 Number
 
 INPUTBOX
-8
-206
-71
-266
+17
+265
+80
+325
 N-indirect
 50.0
 1
@@ -256,12 +258,12 @@ N-indirect
 Number
 
 INPUTBOX
-8
-293
-72
-353
+17
+364
+81
+424
 N-money
-0.0
+50.0
 1
 0
 Number
@@ -278,15 +280,15 @@ average memory length
 11
 
 SLIDER
-74
-134
-246
-167
+85
+177
+257
+210
 memory-size
 memory-size
 0
 count turtles
-100.0
+8.0
 1
 1
 NIL
@@ -315,10 +317,10 @@ PENS
 "pen-4" 1.0 0 -7500403 true "" "carefully [ plot ( sum [fitness] of defectors / count defectors) - average-agent-fitness ][]"
 
 MONITOR
-953
-281
-1088
-326
+914
+279
+1049
+324
 NIL
 average-agent-fitness
 1
@@ -348,21 +350,21 @@ PENS
 "pen-4" 1.0 0 -7500403 true "" "plot sum [balance] of defectors"
 
 SWITCH
-914
-454
-1007
-487
+830
+440
+923
+473
 evolution?
 evolution?
-1
+0
 1
 -1000
 
 PLOT
-1020
-367
-1473
-576
+936
+353
+1389
+562
 surviving strategies
 NIL
 NIL
@@ -425,10 +427,10 @@ PENS
 "pen-4" 1.0 0 -7500403 true "" "carefully [ plot sum [fitness] of defectors / count defectors ][]"
 
 SWITCH
-914
-492
-1007
-525
+830
+478
+923
+511
 learning?
 learning?
 0
@@ -436,10 +438,10 @@ learning?
 -1000
 
 INPUTBOX
-168
-207
-274
-267
+177
+265
+283
+325
 reputation-threshold
 -1.0
 1
@@ -447,10 +449,10 @@ reputation-threshold
 Number
 
 INPUTBOX
-74
-207
-164
-267
+83
+265
+173
+325
 initial-reputation
 0.0
 1
@@ -458,10 +460,10 @@ initial-reputation
 Number
 
 INPUTBOX
-75
-293
-163
-353
+84
+364
+172
+424
 initial-money
 1.0
 1
@@ -469,15 +471,65 @@ initial-money
 Number
 
 INPUTBOX
-167
-293
-273
-353
+176
+364
+282
+424
 debt-threshold
 0.0
 1
 0
 Number
+
+TEXTBOX
+109
+116
+259
+134
+MECHANISMS:
+10
+0.0
+1
+
+TEXTBOX
+37
+133
+274
+172
+Direct-reciprocators remember defectors and only help if current partner is not in memory
+10
+0.0
+1
+
+TEXTBOX
+37
+231
+260
+283
+Indirect Reciprocators only help agents with a reputation score higher than a threshold
+10
+0.0
+1
+
+TEXTBOX
+52
+332
+263
+371
+\"Money users\" only help agents with a \"money balance\" higher than a threshold
+10
+0.0
+1
+
+TEXTBOX
+51
+437
+271
+563
+Background mechanics (always active):\nWhen an agent cooperates with a partner:\n- the agent's reputation score is increased\n- the partner's money balance is decreased\n- the agent's money balance is increased\nWhen an agent does not cooperate:\n- the agent's reputation score is decreased\n- the agent enters partner's memory
+10
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
