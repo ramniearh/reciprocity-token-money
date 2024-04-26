@@ -3,11 +3,11 @@ library(tidyverse)
 library(janitor)
 here()
 df <- 
-  here("BehaviorSpace", "3rd-gen - balances and image scores", "figure 2 money-reciprocity 3.0 - balances and image scores experiment-table.csv") %>%
+  here("BehaviorSpace", "3rd-gen - balances and image scores", "money-reciprocity 3.0 - balances and image scores experiment-table.csv") %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%
   as_tibble() %>% 
-  select(-population,-benefit_to_cost_ratio, -cost, -memory, -offspring, -mutation) %>%
+  select(-population,-benefit_to_cost_ratio, -cost, -interactions_per_generation) %>%
   rename(
     step = x_step, run_number = x_run_number,
     average_score_balance = sum_score_balance_of_turtles_count_turtles,
@@ -16,7 +16,9 @@ df <-
   ) %>% 
   mutate(
     money = as.logical(money),
-    interactions_per_generation = as.factor(interactions_per_generation)
+    offspring = as.logical(offspring),
+    mutation = as.logical(mutation),
+    memory = as.logical(memory)
   ) %>% 
   rename(
     "-5" = ncooperators,
@@ -33,21 +35,20 @@ df <-
     "6" = ndefectors
   )
 
-
-
-## plot state of surviving strategies at t=5000 in base model without mutation
+## plot state of surviving strategies at t=1000 in base model without mutation
 final_state <- df %>% 
-  filter(step == 1000, money == T )
+  filter(step == 500, offspring == T & mutation == F & money == T & memory == F)
 
 #final_state %>% select(-average_fitness) %>% select(7:21) %>% view()
+
 
 final_state %>% ggplot(aes(x = cooperation_rate)) +
   geom_histogram()
 
-final_state %>% ggplot(aes(x = average_k, cooperation_rate, color=interactions_per_generation)) +
-  geom_point() 
+final_state %>% ggplot(aes(x = average_k, average_score_balance, size = cooperation_rate)) +
+  geom_point() + ylim(-5,5)
 
-## plot distribution of winning strategies at end of run
+## plot distribution of winningncooperators## plot distribution of winning strategies at end of run
 final_strategies <- final_state %>% 
   pivot_longer(cols = 8:19, names_to = "strategy_type", values_to = "count")
 final_strategies %>% ggplot(aes(x = strategy_type, y = average_k, size = cooperation_rate)) +
@@ -57,15 +58,12 @@ final_strategies %>% ggplot(aes(x = strategy_type, y = average_k, size = coopera
 
 
 
-## plot evolution of average k over generations
-#evol_strat <- df %>% 
-  #filter(money == T) %>% 
-  #pivot_longer(starts_with("n"), names_to = "strategy_type", values_to = "count") 
 
-df %>% 
-  filter(run_number == 50) %>%
-  ggplot(aes(x=step, y=average_k, color=money)) + 
-  geom_point()
+
+
+
+
+
 
 
 

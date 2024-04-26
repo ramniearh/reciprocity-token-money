@@ -97,21 +97,18 @@ to go
     ask one-of turtles [
       set current-partner one-of other turtles
       ifelse [ score-balance ] of current-partner >= k [ cooperate ][ defect ]
-
+      if not unbounded? [bound-balance-scores] ; REVIEW/ADD
       ; Scores and fitnesses are adjusted to maintain parameters (Nowak 1998) CONFIRM if added partner also or not
-      if score-balance  > 5 [set score-balance 5]
-      if score-balance  < -5 [set score-balance -5]
       set fitness fitness + cost
       ask current-partner [
         set fitness fitness + cost
-        if score-balance  > 5 [set score-balance 5]
-        if score-balance  < -5 [set score-balance -5]
+        if not unbounded? [bound-balance-scores] ; REVIEW/ADD
       ]
     ]
   ]
 
   ;ask turtles [ set fitness fitness + 1 ] ;REVIEW
-
+  ask turtles [ if not memory? [ set score-balance 0 ] ]; IF NEW GENERATION IS BORN WITHOUT A SCORE - CONFIRM? and add "permanent reputation" option?
 
   ; Run learning/evolution: procedure
   if offspring? [ spring-off ]
@@ -122,13 +119,17 @@ to go
   tick
 end
 
+to bound-balance-scores
+   if score-balance  > 5 [set score-balance 5]
+   if score-balance  < -5 [set score-balance -5]
+end
+
 ; Define learning/evolution mechanism: strategy reproduction proportional to fitness (Nowak 1998) using random-weigthed choices (RND library). To confirm in light of Nowak 2005 attachments.
 to spring-off
   set k-payoffs-probs map get-k-probs k-list
   let pairs (map list k-list k-payoffs-probs)
 
   ask turtles [
-    if not memory? [ set score-balance 0 ] ; IF NEW GENERATION IS BORN WITHOUT A SCORE - CONFIRM? and add "permanent reputation" option?
     set k first rnd:weighted-one-of-list pairs [ [p] -> last p ]
     if mutation? [ if random-float 1 < 0.001 [ set k one-of k-list ]]
   ]
@@ -330,10 +331,10 @@ population
 Number
 
 TEXTBOX
-28
-294
-464
-541
+24
+247
+457
+429
 Nowak 1998: setup\nThe strategies are given by ki and the image levels by si. At the beginning of each generation, the image levels of all players are zero (assuming that children do not inherit the image of their parents). In succession, m donor–recipient pairs are chosen. A donor, i, cooperates with a recipient, j, if ki ≤ sj. The fitness of a player is given by the total number of points received during the m interactions. Some players may never be chosen, in which case their payoff from the game will be zero. On average, a player will be chosen 2m/n times, either as donor or as recipient. At the end of each generation, players leave offspring in proportion to the their fitness. We find that if the game is played for many generations, then eventually all players will adopt the same strategy. If the k value of this strategy is 0 or less then cooperation is established; if the value is 1 or more then defection has won. Cooperation is more likely to win if the number of interactions, m, per generation is large.
 12
 0.0
@@ -405,10 +406,10 @@ cooperations-this-round / ( cooperations-this-round + defections-this-round )
 11
 
 TEXTBOX
-28
-597
-1195
-697
+358
+802
+1525
+902
 We observe endless cycles of cooperation and defection. Cooperative populations are relatively stable if they consist of discriminating players with strategies such as k = 0 or −1. But after some time these populations are undermined (through random drift) by players with strategies such as k = −4 or −5, which are too cooperative. Then defectors, with strategies k = 4 or 5, can invade. These defectors can, in turn, be overcome by stern discriminators again. In the long run, cooperation is harmed by unconditional cooperators, because they enable defectors to invade. In the absence of unconditional cooperators, cooperative populations persist for much longer. a, The average k value of the population. b, The average payoff per individual, per generation. c, Frequency distribution of strategies sampled over many generations (t = 107). Parameter values are as for Fig. 1 , but m = 300 rounds per generation.\n\n
 10
 0.0
@@ -426,20 +427,20 @@ mutation?
 -1000
 
 TEXTBOX
-27
-657
-402
-1138
+182
+676
+557
+1157
 interdependence: \n\nAnother interesting expansion of the basic model is to include strategies that consider both the recipient's and the donor's image score. We explored two types of strategies. ‘And’ strategies involve cooperation if the image score of the recipient is larger than a certain value and the image score of the donor is less than a certain value. The idea is that if an individual has already a high image score, it is not necessary to aim for a still higher image score (by helping others). On the other hand, ‘or’ strategies result in cooperation if the image score of the recipient is larger than a certain value or the image score of the donor is less than a certain value. Here the idea is that if an individual has a low image score it may be advantageous to increase the score by helping others regardless of how low their image score is. In both cases, highly cooperative societies form (Fig 4). If, in contrast, we simulate strategies that only consider their own image and do not take into account the image of the recipient, cooperation does not emerge.
 10
 0.0
 1
 
 TEXTBOX
-434
-659
-1037
-881
+621
+732
+1224
+954
 analytical and/or balance?\n\nThe models above are based on computer simulations, but we can derive analytical insights from a simplified model. Suppose that there are only two image levels, 0 (for bad) and 1 (for good). The image of a player depends on his or her last action as a donor: players who defected have score 0, and players who cooperated have score 1. Let us only consider two types of player: first, defectors, who never provide assistance; and second, discriminators who help players having image 1, but not players having image 0. A given player knows the score of only a fraction, q, of the population. A discriminator who has no information on potential recipients will assume, with a certain probability, p, that they have image 1. In each round of the game all individuals of the population are chosen, each with the same probability of being a donor or a recipient. If w < 1 denotes the probability of another round, there are on average 1/(1 − w) rounds per generation. We have derived the equations (see Methods) that describe how the frequencies of discriminators and defectors change from one generation to the next. It should be stressed that discriminators are not ‘tit-for-tat’ players; tit-for-tat strategists base their decisions on their own previous experience with the co-player, whereas discriminators use the experience of others. This is an essential advantage for a player who interacts with many co-players but only a few times with each. (Such discriminators are also different from strategies based on ‘standing’27, which is an internal switch distinguishing between defection in response to a co-player's cooperation or defection.)
 10
 0.0
@@ -459,11 +460,11 @@ offspring?
 SWITCH
 22
 201
-116
+138
 234
 money?
 money?
-0
+1
 1
 -1000
 
@@ -479,10 +480,10 @@ sum [k] of turtles / count turtles
 11
 
 SWITCH
-1356
-277
-1479
-310
+66
+469
+196
+502
 stopper-500?
 stopper-500?
 1
@@ -490,10 +491,10 @@ stopper-500?
 -1000
 
 INPUTBOX
-1403
-389
-1472
-449
+77
+588
+146
+648
 initial-scores
 0.0
 1
@@ -534,9 +535,9 @@ defections-this-round
 11
 
 TEXTBOX
-120
+164
 205
-318
+362
 244
 Off: Nowak 1998 image-score replication\nOn: money-balance modification
 10
@@ -544,10 +545,10 @@ Off: Nowak 1998 image-score replication\nOn: money-balance modification
 1
 
 TEXTBOX
-28
-578
-178
-596
+71
+810
+221
+828
 Nowak 1998: results
 10
 0.0
@@ -565,10 +566,10 @@ sum [fitness] of turtles / count turtles
 11
 
 SWITCH
-1382
-341
-1552
-374
+66
+506
+236
+539
 stopper-convergence?
 stopper-convergence?
 1
@@ -581,7 +582,7 @@ INPUTBOX
 233
 185
 interactions-per-generation
-125.0
+500.0
 1
 0
 Number
@@ -597,36 +598,67 @@ Confirm: \"players leave offpsring in proportion to their fitness\" x k-prob str
 1
 
 SWITCH
-22
-239
-116
-272
+185
+584
+303
+617
 memory?
 memory?
-0
+1
 1
 -1000
 
 TEXTBOX
-121
-242
-481
-294
+309
+588
+669
+640
 Off: scores are erased with every generation (Nowak 1998 - confirm)\nOn: scores are persistent
 10
 0.0
 1
 
 SWITCH
-1375
-218
-1504
-251
+66
+434
+195
+467
 stopper-1000?
 stopper-1000?
 1
 1
 -1000
+
+SWITCH
+185
+622
+302
+655
+unbounded?
+unbounded?
+1
+1
+-1000
+
+TEXTBOX
+312
+627
+591
+666
+Off: scores are bounded at +5 and -5\nOn: no lower or higher bound
+10
+0.0
+1
+
+TEXTBOX
+69
+557
+219
+575
+OTHER MODIFICATIONS
+10
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -978,7 +1010,7 @@ NetLogo 6.4.0
   <experiment name="experiment" repetitions="100" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="500"/>
+    <timeLimit steps="10000"/>
     <metric>cooperation-rate</metric>
     <metric>Ncooperators</metric>
     <metric>Ncoop4</metric>
@@ -995,7 +1027,7 @@ NetLogo 6.4.0
     <metric>sum [score-balance] of turtles / count turtles</metric>
     <metric>sum [fitness] of turtles / count turtles</metric>
     <metric>sum [k] of turtles / count turtles</metric>
-    <runMetricsCondition>ticks mod 25 = 0</runMetricsCondition>
+    <runMetricsCondition>ticks mod 50 = 0</runMetricsCondition>
     <enumeratedValueSet variable="cost">
       <value value="0.1"/>
     </enumeratedValueSet>
@@ -1003,12 +1035,16 @@ NetLogo 6.4.0
       <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="population">
+      <value value="20"/>
+      <value value="50"/>
       <value value="100"/>
-      <value value="500"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="interactions-per-generation">
       <value value="125"/>
-      <value value="250"/>
+      <value value="300"/>
+      <value value="200"/>
+      <value value="500"/>
+      <value value="1000"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="offspring?">
       <value value="true"/>
@@ -1019,10 +1055,6 @@ NetLogo 6.4.0
       <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="money?">
-      <value value="true"/>
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="memory?">
       <value value="true"/>
       <value value="false"/>
     </enumeratedValueSet>
