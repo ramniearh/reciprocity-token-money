@@ -18,7 +18,7 @@ globals [
   ; auxiliary reporters:
   cooperations-this-round defections-this-round
   ; learning/evolution variables:
-  k-list k-payoffs-probs
+  k-list k-payoffs-probs h-list
   ; BehaviorSpace painkillers:
   Ncooperators
   Ncoop4
@@ -40,6 +40,7 @@ turtles-own [
   current-partner
   score-balance
   k
+  h
 ]
 
 ; SET UP ENVIRONMENT AND PARAMETERS: strategies, benefit/cost, payoff evolution list
@@ -50,11 +51,13 @@ to setup
   set benefit cost * benefit-to-cost-ratio
 
   set k-list (range -5 7)
+  set h-list (range -5 7)
 
   create-turtles population [
     set fitness 0
     set score-balance 0 ;random 3 - 1
     set k one-of k-list
+    set h one-of h-list
   ]
 
   set k-payoffs-probs n-values 12 [0]
@@ -96,7 +99,7 @@ to go
   repeat interactions-per-generation [
     ask one-of turtles [
       set current-partner one-of other turtles
-      ifelse [ score-balance ] of current-partner >= k [ cooperate ][ defect ]
+      act
       if not unbounded? [bound-balance-scores] ; REVIEW/ADD
       ; Scores and fitnesses are adjusted to maintain parameters (Nowak 1998) CONFIRM if added partner also or not
       set fitness fitness + cost
@@ -124,7 +127,15 @@ to bound-balance-scores
    if score-balance  < -5 [set score-balance -5]
 end
 
+to act
+  if conditional-strategy = "AND" [ ifelse ( [ score-balance ] of current-partner >= k and score-balance < h ) [ cooperate ][ defect ] ]
+  if conditional-strategy = "OR" [ ifelse ( [ score-balance ] of current-partner >= k or score-balance < h ) [ cooperate ][ defect ] ]
+  if conditional-strategy = "NONE" [ ifelse [ score-balance ] of current-partner >= k [ cooperate ][ defect ] ]
+  ;if conditional-strategy = "ZERO-REAL-TOKEN-TEST" [ ifelse [ score-balance ] of current-partner >= 0 [ cooperate ][ defect ] ]
+end
+
 ; Define learning/evolution mechanism: strategy reproduction proportional to fitness (Nowak 1998) using random-weigthed choices (RND library). To confirm in light of Nowak 2005 attachments.
+; also unclear if h in conditional strategies is being reproduced
 to spring-off
   set k-payoffs-probs map get-k-probs k-list
   let pairs (map list k-list k-payoffs-probs)
@@ -331,10 +342,10 @@ population
 Number
 
 TEXTBOX
-24
-247
-457
-429
+856
+578
+1289
+760
 Nowak 1998: setup\nThe strategies are given by ki and the image levels by si. At the beginning of each generation, the image levels of all players are zero (assuming that children do not inherit the image of their parents). In succession, m donor–recipient pairs are chosen. A donor, i, cooperates with a recipient, j, if ki ≤ sj. The fitness of a player is given by the total number of points received during the m interactions. Some players may never be chosen, in which case their payoff from the game will be zero. On average, a player will be chosen 2m/n times, either as donor or as recipient. At the end of each generation, players leave offspring in proportion to the their fitness. We find that if the game is played for many generations, then eventually all players will adopt the same strategy. If the k value of this strategy is 0 or less then cooperation is established; if the value is 1 or more then defection has won. Cooperation is more likely to win if the number of interactions, m, per generation is large.
 12
 0.0
@@ -458,10 +469,10 @@ offspring?
 -1000
 
 SWITCH
-22
-201
-138
-234
+23
+243
+139
+276
 money?
 money?
 1
@@ -480,10 +491,10 @@ sum [k] of turtles / count turtles
 11
 
 SWITCH
-66
-469
-196
-502
+31
+453
+161
+486
 stopper-500?
 stopper-500?
 1
@@ -535,10 +546,10 @@ defections-this-round
 11
 
 TEXTBOX
-164
-205
-362
-244
+147
+247
+345
+286
 Off: Nowak 1998 image-score replication\nOn: money-balance modification
 10
 0.0
@@ -566,10 +577,10 @@ sum [fitness] of turtles / count turtles
 11
 
 SWITCH
-66
-506
-236
-539
+31
+490
+201
+523
 stopper-convergence?
 stopper-convergence?
 1
@@ -582,7 +593,7 @@ INPUTBOX
 233
 185
 interactions-per-generation
-500.0
+300.0
 1
 0
 Number
@@ -598,10 +609,10 @@ Confirm: \"players leave offpsring in proportion to their fitness\" x k-prob str
 1
 
 SWITCH
-185
-584
-303
-617
+22
+281
+140
+314
 memory?
 memory?
 1
@@ -609,20 +620,20 @@ memory?
 -1000
 
 TEXTBOX
-309
-588
-669
-640
+146
+285
+506
+337
 Off: scores are erased with every generation (Nowak 1998 - confirm)\nOn: scores are persistent
 10
 0.0
 1
 
 SWITCH
-66
-434
-195
-467
+31
+418
+160
+451
 stopper-1000?
 stopper-1000?
 1
@@ -630,10 +641,10 @@ stopper-1000?
 -1000
 
 SWITCH
-185
-622
-302
-655
+23
+321
+140
+354
 unbounded?
 unbounded?
 1
@@ -641,10 +652,10 @@ unbounded?
 -1000
 
 TEXTBOX
-312
-627
-591
-666
+146
+325
+425
+364
 Off: scores are bounded at +5 and -5\nOn: no lower or higher bound
 10
 0.0
@@ -659,6 +670,55 @@ OTHER MODIFICATIONS
 10
 0.0
 1
+
+SWITCH
+162
+591
+336
+624
+imperfect-observation?
+imperfect-observation?
+1
+1
+-1000
+
+TEXTBOX
+42
+221
+192
+239
+MODIFICATIONS:\n
+10
+0.0
+1
+
+PLOT
+322
+323
+522
+473
+histogram h
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-pen-mode 1\nset-plot-x-range -6 7\nset-histogram-num-bars 12" ""
+PENS
+"default" 1.0 0 -16777216 true "" "histogram  [h] of turtles"
+
+CHOOSER
+240
+168
+422
+213
+conditional-strategy
+conditional-strategy
+"AND" "OR" "NONE" "ZERO-REAL-TOKEN-TEST"
+2
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1007,10 +1067,10 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment" repetitions="100" runMetricsEveryStep="false">
+  <experiment name="experiment" repetitions="50" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="10000"/>
+    <timeLimit steps="5000"/>
     <metric>cooperation-rate</metric>
     <metric>Ncooperators</metric>
     <metric>Ncoop4</metric>
@@ -1035,16 +1095,12 @@ NetLogo 6.4.0
       <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="population">
-      <value value="20"/>
-      <value value="50"/>
       <value value="100"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="interactions-per-generation">
       <value value="125"/>
       <value value="300"/>
-      <value value="200"/>
       <value value="500"/>
-      <value value="1000"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="offspring?">
       <value value="true"/>
@@ -1057,6 +1113,19 @@ NetLogo 6.4.0
     <enumeratedValueSet variable="money?">
       <value value="true"/>
       <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="memory?">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="unbounded?">
+      <value value="true"/>
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="conditional-strategy">
+      <value value="&quot;AND&quot;"/>
+      <value value="&quot;OR&quot;"/>
+      <value value="&quot;NONE&quot;"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

@@ -33,6 +33,7 @@ df <-
     "6" = ndefectors
   )
 
+summary(df$cooperation_rate)
 
 
 ## plot state of surviving strategies at t=5000 in base model without mutation

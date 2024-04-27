@@ -3,7 +3,7 @@ library(tidyverse)
 library(janitor)
 here()
 df <- 
-  here("BehaviorSpace", "3rd-gen - balances and image scores", "money-reciprocity 3.0 - balances and image scores experiment-table.csv") %>%
+  here("BehaviorSpace", "3rd-gen - balances and image scores", "figure 0-1 money-reciprocity 3.0 - balances and image scores experiment-table.csv") %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%
   as_tibble() %>% 
@@ -35,18 +35,20 @@ df <-
     "6" = ndefectors
   )
 
+##
+
+
 ## plot state of surviving strategies at t=1000 in base model without mutation
 final_state <- df %>% 
   filter(step == 500, offspring == T & mutation == F & money == T & memory == F)
 
 #final_state %>% select(-average_fitness) %>% select(7:21) %>% view()
 
-
 final_state %>% ggplot(aes(x = cooperation_rate)) +
   geom_histogram()
 
-final_state %>% ggplot(aes(x = average_k, average_score_balance, size = cooperation_rate)) +
-  geom_point() + ylim(-5,5)
+final_state %>% ggplot(aes(x = average_k, cooperation_rate)) +
+  geom_point() 
 
 ## plot distribution of winningncooperators## plot distribution of winning strategies at end of run
 final_strategies <- final_state %>% 
