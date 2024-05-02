@@ -1,7 +1,0 @@
-"BehaviorSpace results (NetLogo 6.4.0)","Table version 2.0"
-"money-reciprocity 3.0 - balances and image scores.nlogo"
-"experiment"
-"04/26/2024 16:03:20:880 +0200"
-"min-pxcor","max-pxcor","min-pycor","max-pycor"
-"-16","16","-16","16"
-"[run number]","cost","benefit-to-cost-ratio","population","interactions-per-generation","offspring?","mutation?","money?","memory","unbounded","conditional-strategy","[step]","cooperation-rate","Ncooperators","Ncoop4","Ncoop3","Ncoop2","Ncoop1","Ndiscriminators","Ndef1","Ndef2","Ndef3","Ndef4","Ndef5","Ndefectors","sum [score-balance] of turtles / count turtles","sum [fitness] of turtles / count turtles","sum [k] of turtles / count turtles"

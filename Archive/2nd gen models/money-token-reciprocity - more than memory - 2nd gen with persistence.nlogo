@@ -113,7 +113,11 @@ end
 
 to go
   ask links [  ;; adding persistence/assortativity!
-    ifelse (([fitness] of end1 >= [previous-fitness] of end1) and ([fitness] of end2 >= [previous-fitness] of end2)) ;if interaction was at least partially positive for both/either side
+    ifelse (;if interaction was at least partially positive for both/either side
+    (([fitness] of end1 >= [previous-fitness] of end1) and ([fitness] of end2 > [previous-fitness] of end2)))
+    or
+    (([fitness] of end1 > [previous-fitness] of end1) and ([fitness] of end2 >= [previous-fitness] of end2))
+
       [if random-float 1 > link-persistence-prob [die]] ;if true
       [die] ;if false
 
@@ -398,7 +402,7 @@ INPUTBOX
 152
 87
 cost
-1.0
+2.0
 1
 0
 Number
@@ -766,7 +770,7 @@ SWITCH
 410
 reputation
 reputation
-1
+0
 1
 -1000
 
@@ -820,7 +824,7 @@ SWITCH
 597
 oversupply?
 oversupply?
-0
+1
 1
 -1000
 
@@ -924,7 +928,7 @@ link-persistence-prob
 link-persistence-prob
 0
 1
-1.0
+0.0
 0.01
 1
 NIL

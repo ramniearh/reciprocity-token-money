@@ -61,7 +61,7 @@ df_evol %>%
 
 df_evol_low_persist <- df %>% 
   select(-contains("welfare")) %>% 
-  filter(step <= 500, link_persistence_prob == 0) %>% 
+  filter(step <= 1000, link_persistence_prob == 0) %>% 
   arrange(step, run_number, cost, benefit)
   
 means_low_persist <- df_evol_low_persist %>% 
@@ -83,7 +83,7 @@ df_evol_low_persist %>%
 
 df_evol_high_persist <- df %>% 
   select(-contains("welfare")) %>% 
-  filter(step <= 500, link_persistence_prob == 0.95) %>% 
+  filter(step <= 1000, link_persistence_prob == 0.1) %>% 
   arrange(step, run_number, cost, benefit)
 
 means_high_persist <- df_evol_high_persist %>% 

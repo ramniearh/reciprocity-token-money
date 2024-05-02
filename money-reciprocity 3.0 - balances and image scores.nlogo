@@ -71,14 +71,14 @@ to cooperate
   set score-balance score-balance + 1
   ask current-partner [
     set fitness fitness + benefit
-    if money? [set score-balance score-balance - 1]
+    if ( money? and not quid-pro-quo? ) [set score-balance score-balance - 1]
   ]
   ; reporter:
   set cooperations-this-round cooperations-this-round + 1
 end
 
 to defect
-  if not money? [set score-balance score-balance - 1]
+  if ( not money? and not quid-pro-quo? ) [set score-balance score-balance - 1]
   ; reporter:
   set defections-this-round defections-this-round + 1
 end
@@ -128,10 +128,12 @@ to bound-balance-scores
 end
 
 to act
-  if conditional-strategy = "AND" [ ifelse ( [ score-balance ] of current-partner >= k and score-balance < h ) [ cooperate ][ defect ] ]
-  if conditional-strategy = "OR" [ ifelse ( [ score-balance ] of current-partner >= k or score-balance < h ) [ cooperate ][ defect ] ]
-  if conditional-strategy = "NONE" [ ifelse [ score-balance ] of current-partner >= k [ cooperate ][ defect ] ]
+  ; CONDITIONAL STRATEGIES TEMPORARILY REMOVED FOR QUIDPQ TESTS
+  ;if conditional-strategy = "AND" [ ifelse ( [ score-balance ] of current-partner >= k and score-balance < h ) [ cooperate ][ defect ] ]
+  ;if conditional-strategy = "OR" [ ifelse ( [ score-balance ] of current-partner >= k or score-balance < h ) [ cooperate ][ defect ] ]
+  ;if conditional-strategy = "NONE" [ ifelse [ score-balance ] of current-partner >= k [ cooperate ][ defect ] ]
   ;if conditional-strategy = "ZERO-REAL-TOKEN-TEST" [ ifelse [ score-balance ] of current-partner >= 0 [ cooperate ][ defect ] ]
+  ifelse [ score-balance ] of current-partner >= k [ cooperate if ( money? and quid-pro-quo? ) [ set score-balance score-balance + 1 ask current-partner [set score-balance score-balance - 1] ] ][ defect ]
 end
 
 ; Define learning/evolution mechanism: strategy reproduction proportional to fitness (Nowak 1998) using random-weigthed choices (RND library). To confirm in light of Nowak 2005 attachments.
@@ -247,11 +249,11 @@ NIL
 1
 
 PLOT
-527
-14
-925
-256
-total fitness by strategy
+432
+11
+795
+253
+total fitness by strategy_1
 NIL
 NIL
 0.0
@@ -276,10 +278,39 @@ PENS
 "6 (defectors)" 1.0 0 -12895429 true "" "plot sum [fitness] of turtles with [k = 6]"
 
 PLOT
-933
-14
-1348
-254
+1119
+10
+1459
+249
+total score-balance by strategy
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"-5 (cooperators)" 1.0 0 -13840069 true "" "plot sum [score-balance] of turtles with [k = -5]"
+"-4" 1.0 0 -1184463 true "" "plot sum [score-balance] of turtles with [k = -4]"
+"-3" 1.0 0 -987046 true "" "plot sum [score-balance] of turtles with [k = -3]"
+"-2" 1.0 0 -723837 true "" "plot sum [score-balance] of turtles with [k = -2]"
+"-1" 1.0 0 -526419 true "" "plot sum [score-balance] of turtles with [k = -1]"
+"0" 1.0 0 -13345367 true "" "plot sum [score-balance] of turtles with [k = 0]"
+"1" 1.0 0 -612749 true "" "plot sum [score-balance] of turtles with [k = 1]"
+"2" 1.0 0 -817084 true "" "plot sum [score-balance] of turtles with [k = 2]"
+"3" 1.0 0 -817084 true "" "plot sum [score-balance] of turtles with [k = 3]"
+"4" 1.0 0 -955883 true "" "plot sum [score-balance] of turtles with [k = 4]"
+"5" 1.0 0 -3844592 true "" "plot sum [score-balance] of turtles with [k = 5]"
+"6 (defectors)" 1.0 0 -12895429 true "" "plot sum [score-balance] of turtles with [k = 6]"
+
+PLOT
+801
+10
+1117
+250
 strategy distribution
 NIL
 NIL
@@ -475,7 +506,7 @@ SWITCH
 276
 money?
 money?
-1
+0
 1
 -1000
 
@@ -502,10 +533,10 @@ stopper-500?
 -1000
 
 INPUTBOX
-77
-588
-146
-648
+181
+366
+250
+426
 initial-scores
 0.0
 1
@@ -609,10 +640,10 @@ Confirm: \"players leave offpsring in proportion to their fitness\" x k-prob str
 1
 
 SWITCH
-22
-281
-140
-314
+224
+493
+342
+526
 memory?
 memory?
 1
@@ -620,10 +651,10 @@ memory?
 -1000
 
 TEXTBOX
-146
-285
-506
-337
+348
+497
+708
+549
 Off: scores are erased with every generation (Nowak 1998 - confirm)\nOn: scores are persistent
 10
 0.0
@@ -641,10 +672,10 @@ stopper-1000?
 -1000
 
 SWITCH
-23
-321
-140
-354
+225
+533
+342
+566
 unbounded?
 unbounded?
 1
@@ -652,10 +683,10 @@ unbounded?
 -1000
 
 TEXTBOX
-146
-325
-425
-364
+348
+537
+627
+576
 Off: scores are bounded at +5 and -5\nOn: no lower or higher bound
 10
 0.0
@@ -719,6 +750,17 @@ conditional-strategy
 conditional-strategy
 "AND" "OR" "NONE" "ZERO-REAL-TOKEN-TEST"
 2
+
+SWITCH
+22
+287
+149
+320
+quid-pro-quo?
+quid-pro-quo?
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?

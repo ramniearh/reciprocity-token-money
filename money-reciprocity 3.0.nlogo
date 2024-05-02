@@ -1,7 +1,9 @@
 ; pending: review evolution/learning to match Nowak 1998 proportional reproduction
 extensions [ rnd ]
-globals [ benefit cost ]
-turtles-own [ fitness memory score balance strategy current-partner ]
+
+globals [ benefit cost C D coop-rate cumulative-coop-rate ]
+turtles-own [ fitness memory score balance strategy current-partner cumulative-fitness ]
+
 breed [ cooperators cooperator ]
 breed [ defectors defector ]
 breed [ directs direct ]
@@ -32,22 +34,26 @@ to setup
 end
 
 to go
-
-
+  set C 0
+  set D 0
   ask turtles [
     set fitness 0 ;testing
     set current-partner one-of other turtles
   ]
   ask cooperators [ cooperate ]
   ask defectors [ defect ]
-  ask directs [ ifelse not member? current-partner memory [ cooperate ][ defect ] ]
+  ask directs [ ifelse not member? current-partner memory [ cooperate ][ defect ] ] ; TO CODE: REMOVE ONCE PUNISHED
   ask indirects [ ifelse [score] of current-partner > reputation-threshold [ cooperate ][ defect ] ]
-  ask moneys [ ifelse [balance] of current-partner > debt-threshold [ cooperate ][ defect ] ]
+  ask moneys [ ifelse [balance] of current-partner > debt-threshold
+    [ cooperate if quid-pro-quo? [set balance balance + 1 ask current-partner [ set balance balance - 1 ]]]
+    [ defect ]
+  ]
 
   ask turtles [ set fitness fitness + 1 ]
-  ;set average-agent-fitness sum [fitness] of turtles / count turtles
 
-  if offspring? [ spring-off ]
+  if evolutionary-updating? [ spring-off ]
+
+  set coop-rate C / (C + D)
   tick
 end
 
@@ -55,50 +61,30 @@ end
 to cooperate
   set fitness fitness - cost
   set score score + 1
-  set balance balance + 1
+  if not quid-pro-quo? [set balance balance + 1]
   ask current-partner [
     set fitness fitness + benefit
-    set balance balance - 1
+    if not quid-pro-quo? [set balance balance - 1]
   ]
+  set C C + 1
 end
 
 
 to defect
   set score score - 1
   ask current-partner [
-    if length memory < memory-size [ set memory lput myself memory ]
+    ifelse length memory < memory-size [ set memory lput myself memory ][ set memory lput myself memory set memory remove-item 0 memory]
   ]
+  set D D + 1
 end
 
 
 
 to spring-off ; (Nowak 2005 Evolutionary updating: "in each time step a random individual is chosen to die; the neighbors compete for the empty site proportional to their fitness")
-  ; or nowak 1998?
-  let strategy-list (list cooperators defectors directs indirects moneys) show strategy-list ; cooperators defectors directs indirects moneys
-  let payoff-proportional-probabilities map [ x -> sum [fitness] of x / sum [fitness] of turtles ] strategy-list show payoff-proportional-probabilities
-  let pairs (map list strategy-list payoff-proportional-probabilities) show pairs
-
-  ask turtles [
-    set breed first rnd:weighted-one-of-list pairs [ [p] -> last p ]
-    if mutation? [ if random-float 1 < 0.001 [ set breed one-of strategy-list show breed ]]
+  ask one-of turtles [
+    set breed [breed] of rnd:weighted-one-of turtles [fitness]
   ]
-
 end
-
-
-;DEPRECATED: naive evolution methods
-
-;to evolve
-;  ask one-of turtles with [fitness <= average-agent-fitness] [die] ;    alternative: ask one-of turtles with [fitness = min [fitness] of turtles ] [die]
-;  ask one-of turtles with [fitness >= average-agent-fitness] [hatch 1]
-;end
-;
-;to learn
-;  ask one-of turtles [ if fitness < average-agent-fitness [ set breed [breed] of one-of turtles with [fitness > average-agent-fitness] ] ]
-;end
-
-  ;if evolution? [ evolve ]
-  ;if learning? [ learn ]
 @#$#@#$#@
 GRAPHICS-WINDOW
 248
@@ -181,7 +167,7 @@ NIL
 PLOT
 353
 31
-806
+809
 273
 total fitness
 NIL
@@ -209,7 +195,7 @@ benefit-to-cost-ratio
 benefit-to-cost-ratio
 0
 20
-5.0
+2.0
 1
 1
 NIL
@@ -243,7 +229,7 @@ INPUTBOX
 266
 86
 N-coop
-1000.0
+100.0
 1
 0
 Number
@@ -254,7 +240,7 @@ INPUTBOX
 325
 86
 N-defect
-1000.0
+100.0
 1
 0
 Number
@@ -265,7 +251,7 @@ INPUTBOX
 78
 223
 N-direct
-1000.0
+100.0
 1
 0
 Number
@@ -276,7 +262,7 @@ INPUTBOX
 80
 325
 N-indirect
-1000.0
+100.0
 1
 0
 Number
@@ -287,7 +273,7 @@ INPUTBOX
 81
 424
 N-money
-1000.0
+100.0
 1
 0
 Number
@@ -312,17 +298,17 @@ memory-size
 memory-size
 0
 count turtles
-2.0
+400.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-1147
-32
-1459
-268
+710
+603
+1022
+839
 per-agent fitness: deviations from average
 NIL
 NIL
@@ -374,10 +360,10 @@ PENS
 "pen-4" 1.0 0 -7500403 true "" "plot sum [balance] of defectors"
 
 SWITCH
-1389
-447
-1482
-480
+814
+679
+907
+712
 evolution?
 evolution?
 1
@@ -385,10 +371,10 @@ evolution?
 -1000
 
 PLOT
-936
-353
-1389
-562
+1138
+32
+1477
+273
 surviving strategies
 NIL
 NIL
@@ -397,7 +383,7 @@ NIL
 0.0
 10.0
 true
-true
+false
 "" ""
 PENS
 "cooperators" 1.0 0 -13840069 true "" "plot count cooperators"
@@ -446,15 +432,15 @@ false
 PENS
 "default" 1.0 0 -955883 true "" "carefully [ plot sum [fitness] of directs / count directs ] []"
 "pen-1" 1.0 0 -1184463 true "" "carefully [ plot sum [fitness] of indirects / count indirects ][]"
-"pen-2" 1.0 0 -13345367 true "" "carefully [ plot sum [fitness] of moneys / count moneys ][]"
+"pen-2" 1.0 0 -13791810 true "" "carefully [ plot sum [fitness] of moneys / count moneys ][]"
 "pen-3" 1.0 0 -13840069 true "" "carefully [ plot sum [fitness] of cooperators / count cooperators ][]"
 "pen-4" 1.0 0 -7500403 true "" "carefully [ plot sum [fitness] of defectors / count defectors ][]"
 
 SWITCH
-1389
-485
-1482
-518
+814
+717
+907
+750
 learning?
 learning?
 1
@@ -489,7 +475,7 @@ INPUTBOX
 172
 424
 initial-money
-1.0
+100.0
 1
 0
 Number
@@ -546,36 +532,87 @@ TEXTBOX
 1
 
 TEXTBOX
-51
-437
-271
-563
-Background mechanics (always active):\nWhen an agent cooperates with a partner:\n- the agent's reputation score is increased\n- the partner's money balance is decreased\n- the agent's money balance is increased\nWhen an agent does not cooperate:\n- the agent's reputation score is decreased\n- the agent enters partner's memory
+21
+429
+272
+572
+Background mechanics (always active):\nWhen an agent cooperates with a partner:\n- the agent's reputation score is increased\n- the partner's money balance is decreased\n- the agent's money balance is increased\nWhen an agent does not cooperate:\n- the agent's reputation score is decreased\n- the agent enters partner's memory\nBUT note the role of Quid-pro-Quo: when active, this happens only for \"money\" agents
 10
 0.0
 1
 
 SWITCH
-821
-435
-926
-468
-offspring?
-offspring?
+986
+378
+1158
+411
+evolutionary-updating?
+evolutionary-updating?
+0
+1
+-1000
+
+SWITCH
+809
+620
+914
+653
+mutation?
+mutation?
 1
 1
 -1000
 
 SWITCH
-821
-475
-926
-508
-mutation?
-mutation?
-1
+224
+434
+351
+467
+quid-pro-quo?
+quid-pro-quo?
+0
 1
 -1000
+
+MONITOR
+593
+176
+1022
+221
+NIL
+coop-rate
+111
+1
+11
+
+MONITOR
+912
+497
+1091
+542
+NIL
+variance [balance] of moneys
+17
+1
+11
+
+PLOT
+784
+335
+984
+485
+variance of balances
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot variance [balance] of moneys"
 
 @#$#@#$#@
 ## WHAT IS IT?
