@@ -4,7 +4,7 @@ library(janitor)
 
 # Import ant treat data:
 
-DDDFFDF <- 
+df125x4 <- 
   here("BehaviorSpace", "BEHAVE sensitivity analysis", "125x5 - 500 repetitions", "money-reciprocity 3.0 - BEHAVE BehaviorSpace reference experiment - sensitivity analysis full sweep 125x4 no-money-table.csv") %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%
@@ -37,7 +37,7 @@ DDDFFDF <-
 # Summarize cooperation rate data at end of run seeIM
 df125x4 %>% 
   filter(step == 10000) %>% 
-  group_by(bc_ratio, initial_money, debt_threshold) %>% 
+  group_by(bc_ratio) %>% 
   summarise(mean(cooperation_rate), sd(cooperation_rate), median(cooperation_rate))
 
 # Plot cooperation rates x benefit/cost ratios at selected time steps
@@ -81,7 +81,7 @@ df125x4 %>%
   #facet_wrap(~ bc_ratio, labeller = label_both)
   
 # geom_bar()# Plot strategy counts at end of run
-summary_df125x4 <- df125x4 %>% 
+df125x4 %>% 
   filter(step < 10000) %>% 
   pivot_longer(starts_with("count"), names_to = "strategy", values_to = "survivors") %>% 
   mutate(
@@ -97,9 +97,7 @@ summary_df125x4 <- df125x4 %>%
   summarise(
     mean_survivors = mean(survivors),
     sd_survivors = sd(survivors)
-    ) 
-  
-summary_df125x4 %>% 
+    ) %>% 
   ggplot(aes(x=step, y=mean_survivors, color = strategy)) +
   geom_line() +
   geom_ribbon(aes(ymin = mean_survivors - 1.96 * sd_survivors, ymax = mean_survivors + 1.96 * sd_survivors, fill = strategy), alpha = 0.2) +

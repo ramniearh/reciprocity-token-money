@@ -1,7 +1,7 @@
 ; pending: review evolution/learning to match Nowak 1998 proportional reproduction
 extensions [ rnd ]
 
-globals [ benefit cost C D cooperation-rate cumulative-coop-rate ]
+globals [ benefit cost C D cooperation-rate cumulative-coop-rate initial-populations ]
 turtles-own [ fitness memory score balance strategy current-partner cumulative-fitness ]
 
 breed [ cooperators cooperator ]
@@ -9,6 +9,14 @@ breed [ defectors defector ]
 breed [ directs direct ]
 breed [ indirects indirect ]
 breed [ moneys money ]
+
+; BehaviorSpace setup auxiliary routines:
+to BS-set-populations
+  set initial-populations [ "explicit" ]
+  ;SETUP Ninitial for each trategy
+
+  ; direct memory-size to total population (max), set forgiveness false
+end
 
 to setup
   clear-all
@@ -22,6 +30,9 @@ to setup
   create-indirects N-indirect
   create-moneys N-money
 
+  ;BS:
+  set memory-size count turtles
+
   ask turtles [
     set fitness 0
     set memory []
@@ -34,6 +45,7 @@ to setup
 end
 
 to go
+  ;set reputation-threshold (sum [score] of turtles / count turtles) - 1 average reputation scoring! quite effective
   set C 0
   set D 0
 
@@ -85,8 +97,9 @@ end
 
 
 to spring-off ; (Nowak 2005 Evolutionary updating: "in each time step a random individual is chosen to die; the neighbors compete for the empty site proportional to their fitness")
-  ask one-of turtles [
+  ask one-of turtles [;with [ fitness <= ( sum [fitness] of turtles / count turtles ) ] [
     set breed [breed] of rnd:weighted-one-of turtles [fitness]
+    ;if mutation? if [ random-float < 0.001 [ set breed one-of breeds ]
   ]
 end
 
@@ -208,18 +221,18 @@ SLIDER
 benefit-to-cost-ratio
 benefit-to-cost-ratio
 0
-20
-20.0
+100
+10.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-538
-278
-636
-323
+566
+281
+664
+326
 average scores
 sum [score] of turtles / count turtles
 1
@@ -227,10 +240,10 @@ sum [score] of turtles / count turtles
 11
 
 MONITOR
-645
-277
-730
-322
+746
+278
+831
+323
 total balances
 sum [balance] of turtles
 1
@@ -243,7 +256,7 @@ INPUTBOX
 266
 86
 N-coop
-100.0
+50.0
 1
 0
 Number
@@ -254,7 +267,7 @@ INPUTBOX
 325
 86
 N-defect
-100.0
+50.0
 1
 0
 Number
@@ -265,7 +278,7 @@ INPUTBOX
 78
 223
 N-direct
-100.0
+50.0
 1
 0
 Number
@@ -276,7 +289,7 @@ INPUTBOX
 80
 325
 N-indirect
-100.0
+50.0
 1
 0
 Number
@@ -287,16 +300,16 @@ INPUTBOX
 81
 424
 N-money
-100.0
+50.0
 1
 0
 Number
 
 MONITOR
-397
-279
-531
-324
+364
+286
+498
+331
 average memory length
 (sum [length memory] of turtles) / count turtles
 1
@@ -312,7 +325,7 @@ memory-size
 memory-size
 0
 count turtles
-300.0
+250.0
 1
 1
 NIL
@@ -330,10 +343,10 @@ sum [fitness] of turtles / count turtles
 11
 
 PLOT
-589
-333
-789
-483
+705
+326
+878
+452
 balances
 NIL
 NIL
@@ -374,10 +387,10 @@ PENS
 "money users" 1.0 0 -13791810 true "" "plot count moneys"
 
 PLOT
-379
-333
-579
-483
+526
+331
+694
+451
 scores
 NIL
 NIL
@@ -423,7 +436,7 @@ INPUTBOX
 283
 325
 reputation-threshold
-0.0
+-1.0
 1
 0
 Number
@@ -512,10 +525,10 @@ Background mechanics (always active):\nWhen an agent cooperates with a partner:\
 1
 
 SWITCH
-1010
-378
-1182
-411
+885
+365
+1057
+398
 evolutionary-updating?
 evolutionary-updating?
 0
@@ -534,10 +547,10 @@ quid-pro-quo?
 -1000
 
 MONITOR
-736
-277
-831
-322
+1333
+440
+1428
+485
 NIL
 cooperation-rate
 11
@@ -545,10 +558,10 @@ cooperation-rate
 11
 
 MONITOR
-815
-484
-974
-529
+714
+586
+873
+631
 NIL
 variance [balance] of moneys
 17
@@ -556,10 +569,10 @@ variance [balance] of moneys
 11
 
 PLOT
-795
-332
-995
-482
+704
+454
+878
+579
 variance of balances
 NIL
 NIL
@@ -571,7 +584,8 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "carefully [plot variance [balance] of moneys] []"
+"default" 1.0 0 -13791810 true "" "carefully [plot variance [balance] of moneys] []"
+"pen-1" 1.0 0 -7500403 true "" "carefully [plot variance [balance] of turtles] []"
 
 SWITCH
 230
@@ -580,15 +594,15 @@ SWITCH
 212
 forgiveness?
 forgiveness?
-1
+0
 1
 -1000
 
 BUTTON
-398
-560
-484
-593
+1058
+534
+1144
+567
 NIL
 set-equals
 NIL
@@ -602,15 +616,63 @@ NIL
 1
 
 INPUTBOX
-498
-547
-570
-607
+1158
+521
+1230
+581
 set-equals-n
 100.0
 1
 0
 Number
+
+TEXTBOX
+1071
+497
+1221
+523
+BEHAVIORSPACE-ONLY: MODIFICATIONS
+10
+0.0
+1
+
+PLOT
+1140
+279
+1475
+425
+cooperation rate
+NIL
+NIL
+0.0
+10.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot cooperation-rate"
+
+TEXTBOX
+900
+408
+1050
+426
+NO MUTATION?
+10
+0.0
+1
+
+TEXTBOX
+916
+433
+1066
+459
+RANDOM OR FITNESS-BASED ELIMINATION?
+10
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -959,7 +1021,7 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment" repetitions="1000" runMetricsEveryStep="false">
+  <experiment name="experiment" repetitions="200" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="10000"/>
@@ -980,7 +1042,7 @@ NetLogo 6.4.0
     <metric>sum [score] of directs</metric>
     <metric>sum [score] of indirects</metric>
     <metric>sum [score] of moneys</metric>
-    <runMetricsCondition>ticks mod 500 = 0</runMetricsCondition>
+    <runMetricsCondition>ticks mod 200 = 0</runMetricsCondition>
     <enumeratedValueSet variable="N-coop">
       <value value="100"/>
     </enumeratedValueSet>
@@ -1000,40 +1062,168 @@ NetLogo 6.4.0
       <value value="1"/>
       <value value="2"/>
       <value value="5"/>
-      <value value="10"/>
-      <value value="50"/>
+      <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="initial-money">
       <value value="0"/>
       <value value="1"/>
-      <value value="5"/>
       <value value="10"/>
       <value value="999"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="debt-threshold">
+      <value value="0"/>
+      <value value="-10"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="quid-pro-quo?">
       <value value="true"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="evolutionary-updating?">
       <value value="true"/>
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="memory-size">
-      <value value="1"/>
-      <value value="20"/>
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="debt-threshold">
-      <value value="0"/>
-      <value value="-5"/>
-      <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="initial-reputation">
-      <value value="0"/>
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="reputation-threshold">
-      <value value="0"/>
       <value value="-1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="forgiveness?">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="reference experiment - sensitivity analysis full sweep 100x5" repetitions="300" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="10000"/>
+    <metric>cooperation-rate</metric>
+    <metric>count cooperators</metric>
+    <metric>count defectors</metric>
+    <metric>count directs</metric>
+    <metric>count indirects</metric>
+    <metric>count moneys</metric>
+    <metric>(sum [length memory] of turtles) / count turtles</metric>
+    <metric>sum [balance] of cooperators</metric>
+    <metric>sum [balance] of defectors</metric>
+    <metric>sum [balance] of directs</metric>
+    <metric>sum [balance] of indirects</metric>
+    <metric>sum [balance] of moneys</metric>
+    <metric>sum [score] of cooperators</metric>
+    <metric>sum [score] of defectors</metric>
+    <metric>sum [score] of directs</metric>
+    <metric>sum [score] of indirects</metric>
+    <metric>sum [score] of moneys</metric>
+    <runMetricsCondition>ticks mod 200 = 0</runMetricsCondition>
+    <enumeratedValueSet variable="N-coop">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-defect">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-direct">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-indirect">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-money">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="benefit-to-cost-ratio">
+      <value value="1"/>
+      <value value="2"/>
+      <value value="5"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-money">
+      <value value="0"/>
+      <value value="1"/>
+      <value value="10"/>
+      <value value="999"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="debt-threshold">
+      <value value="0"/>
+      <value value="-10"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="quid-pro-quo?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="evolutionary-updating?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-reputation">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reputation-threshold">
+      <value value="-1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="forgiveness?">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="reference experiment - sensitivity analysis full sweep 125x4 no-money" repetitions="500" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="10000"/>
+    <metric>cooperation-rate</metric>
+    <metric>count cooperators</metric>
+    <metric>count defectors</metric>
+    <metric>count directs</metric>
+    <metric>count indirects</metric>
+    <metric>count moneys</metric>
+    <metric>(sum [length memory] of turtles) / count turtles</metric>
+    <metric>sum [balance] of cooperators</metric>
+    <metric>sum [balance] of defectors</metric>
+    <metric>sum [balance] of directs</metric>
+    <metric>sum [balance] of indirects</metric>
+    <metric>sum [balance] of moneys</metric>
+    <metric>sum [score] of cooperators</metric>
+    <metric>sum [score] of defectors</metric>
+    <metric>sum [score] of directs</metric>
+    <metric>sum [score] of indirects</metric>
+    <metric>sum [score] of moneys</metric>
+    <runMetricsCondition>ticks mod 200 = 0</runMetricsCondition>
+    <enumeratedValueSet variable="N-coop">
+      <value value="125"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-defect">
+      <value value="125"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-direct">
+      <value value="125"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-indirect">
+      <value value="125"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-money">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="benefit-to-cost-ratio">
+      <value value="1"/>
+      <value value="2"/>
+      <value value="5"/>
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-money">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="debt-threshold">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="quid-pro-quo?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="evolutionary-updating?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-reputation">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reputation-threshold">
+      <value value="-1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="forgiveness?">
+      <value value="true"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

@@ -1,0 +1,20 @@
+
+
+to do:
+
+non-evol-updt tests
+
+4otherstrat tests
+
+
+individual strategy tests:
+
+- direct rec: search memory-size variation and forgiveness. eventually, with some axelrod winner solutions
+	x defectors
+	x coop and defectors
+
+indirect rec:
+	x many reputation and threshold variations. eventually, with some scoring dilemma solutions
+		x defectors
+		x coop and defectors
+	

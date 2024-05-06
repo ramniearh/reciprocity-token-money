@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE search SYSTEM "behaviorsearch.dtd">
+<search>
+    <bsearchVersionNumber>1.10</bsearchVersionNumber>
+    <modelInfo>
+        <modelFile>C:\Users\eduar\OneDrive\Documentos\GitHub\reciprocity-token-money\money-reciprocity 3.0.nlogo</modelFile>
+        <modelSetupCommands>setup</modelSetupCommands>
+        <modelStepCommands>go</modelStepCommands>
+        <modelStopCondition/>
+        <modelStepLimit>10000</modelStepLimit>
+        <modelMetricReporter>cooperation-rate</modelMetricReporter>
+        <modelMeasureIf>ticks mod 100 = 0</modelMeasureIf>
+    </modelInfo>
+    <fitnessInfo>
+        <fitnessMinimized>false</fitnessMinimized>
+        <fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
+        <fitnessSamplingReplications>10</fitnessSamplingReplications>
+        <fitnessCombineReplications>MEAN</fitnessCombineReplications>
+    </fitnessInfo>
+    <searchSpace>
+        <paramSpec>["benefit-to-cost-ratio" 0 1 5 20]</paramSpec>
+        <paramSpec>["n-coop" 20]</paramSpec>
+        <paramSpec>["n-defect" 20]</paramSpec>
+        <paramSpec>["n-direct" 20]</paramSpec>
+        <paramSpec>["n-indirect" 20]</paramSpec>
+        <paramSpec>["n-money" 20]</paramSpec>
+        <paramSpec>["memory-size" 100]</paramSpec>
+        <paramSpec>["reputation-threshold" -1]</paramSpec>
+        <paramSpec>["initial-reputation" 0]</paramSpec>
+        <paramSpec>["initial-money" 1 5 100]</paramSpec>
+        <paramSpec>["debt-threshold" 0]</paramSpec>
+        <paramSpec>["evolutionary-updating?" true ]</paramSpec>
+        <paramSpec>["quid-pro-quo?" true ]</paramSpec>
+    </searchSpace>
+    <searchMethod type="StandardGA">
+        <searchMethodParameter name="mutation-rate" value="0.03"/>
+        <searchMethodParameter name="population-size" value="50"/>
+        <searchMethodParameter name="crossover-rate" value="0.7"/>
+        <searchMethodParameter name="population-model" value="generational"/>
+        <searchMethodParameter name="tournament-size" value="3"/>
+    </searchMethod>
+    <chromosomeRepresentation type="GrayBinaryChromosome"/>
+    <caching>true</caching>
+    <evaluationLimit>300</evaluationLimit>
+    <bestCheckingNumReplications>0</bestCheckingNumReplications>
+</search>
