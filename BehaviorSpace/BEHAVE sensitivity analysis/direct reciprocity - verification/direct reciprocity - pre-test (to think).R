@@ -6,7 +6,7 @@ library(janitor)
 
 # Import ant treat data:
 
-df_no_evol <- 
+df_direct <- 
   here("BehaviorSpace", "BEHAVE sensitivity analysis", "direct reciprocity - verification", "money-reciprocity 3.0 - BehaviorSpace direct reciprocity verification-table.csv") %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%

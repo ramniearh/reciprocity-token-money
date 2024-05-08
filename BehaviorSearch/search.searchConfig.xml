@@ -3,13 +3,13 @@
 <search>
     <bsearchVersionNumber>1.10</bsearchVersionNumber>
     <modelInfo>
-        <modelFile>C:\Users\eduar\OneDrive\Documentos\GitHub\reciprocity-token-money\money-reciprocity 3.0.nlogo</modelFile>
+        <modelFile>C:\Users\eduar\OneDrive\Documentos\GitHub\reciprocity-token-money\money-reciprocity 3.0 - BehaviorSpace.nlogo</modelFile>
         <modelSetupCommands>setup</modelSetupCommands>
         <modelStepCommands>go</modelStepCommands>
-        <modelStopCondition/>
+        <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
         <modelStepLimit>10000</modelStepLimit>
         <modelMetricReporter>cooperation-rate</modelMetricReporter>
-        <modelMeasureIf>ticks mod 100 = 0</modelMeasureIf>
+        <modelMeasureIf>true</modelMeasureIf>
     </modelInfo>
     <fitnessInfo>
         <fitnessMinimized>false</fitnessMinimized>
@@ -18,19 +18,21 @@
         <fitnessCombineReplications>MEAN</fitnessCombineReplications>
     </fitnessInfo>
     <searchSpace>
-        <paramSpec>["benefit-to-cost-ratio" 0 1 5 20]</paramSpec>
-        <paramSpec>["n-coop" 20]</paramSpec>
-        <paramSpec>["n-defect" 20]</paramSpec>
-        <paramSpec>["n-direct" 20]</paramSpec>
-        <paramSpec>["n-indirect" 20]</paramSpec>
-        <paramSpec>["n-money" 20]</paramSpec>
-        <paramSpec>["memory-size" 100]</paramSpec>
+        <paramSpec>["benefit-to-cost-ratio" 10 ]</paramSpec>
+        <paramSpec>["n-coop" 50]</paramSpec>
+        <paramSpec>["n-defect" 50]</paramSpec>
+        <paramSpec>["n-direct" 0 50 100]</paramSpec>
+        <paramSpec>["n-indirect" 0 50 100]</paramSpec>
+        <paramSpec>["n-money" 0 50 100]</paramSpec>
+        <paramSpec>["memory-size" 250]</paramSpec>
         <paramSpec>["reputation-threshold" -1]</paramSpec>
-        <paramSpec>["initial-reputation" 0]</paramSpec>
-        <paramSpec>["initial-money" 1 5 100]</paramSpec>
-        <paramSpec>["debt-threshold" 0]</paramSpec>
+        <paramSpec>["initial-reputation" 1]</paramSpec>
+        <paramSpec>["initial-money" 1 ]</paramSpec>
+        <paramSpec>["debt-threshold" -10 -5 -1 0 1 5 10]</paramSpec>
         <paramSpec>["evolutionary-updating?" true ]</paramSpec>
-        <paramSpec>["quid-pro-quo?" true ]</paramSpec>
+        <paramSpec>["quid-pro-quo?" true false]</paramSpec>
+        <paramSpec>["forgiveness?" true ]</paramSpec>
+        <paramSpec>["set-equals-n" 100]</paramSpec>
     </searchSpace>
     <searchMethod type="StandardGA">
         <searchMethodParameter name="mutation-rate" value="0.03"/>
