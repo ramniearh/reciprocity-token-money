@@ -64,13 +64,15 @@ to go
     set current-partner one-of other turtles
   ]
 
-  ask cooperators [ cooperate ]
-  ask defectors [ defect ]
-  ask directs [ ifelse not member? current-partner memory [ cooperate ][ defect if forgiveness? [ if member? current-partner memory [ set memory remove current-partner memory] ]] ] ; TO CODE: REMOVE ONCE PUNISHED
-  ask indirects [ ifelse [score] of current-partner > reputation-threshold [ cooperate ][ defect ]] ; if already punished, remove (Fr) ] ]
-  ask moneys [ ifelse [balance] of current-partner > debt-threshold
+  ask cooperators [ ifelse random-float 1 > error-noise [ cooperate ] [defect]]
+  ask defectors [ ifelse random-float 1 > error-noise  [defect] [cooperate] ]
+  ask directs [ ifelse random-float 1 > error-noise [ifelse not member? current-partner memory [ cooperate ][ defect if forgiveness? [ if member? current-partner memory [ set memory remove current-partner memory] ]] ] [defect]] ; TO CODE: REMOVE ONCE PUNISHED
+  ask indirects [ ifelse random-float 1 > error-noise [ifelse [score] of current-partner > reputation-threshold [ cooperate ][ defect ]] [defect]]; if already punished, remove (Fr) ] ]
+  ask moneys [ ifelse random-float 1 > error-noise [
+    ifelse [balance] of current-partner > debt-threshold
     [ cooperate if quid-pro-quo? [set balance balance + 1 ask current-partner [ set balance balance - 1 ]]]
-    [ defect ]
+    [ defect ]]
+    [defect]
   ]
 
   ask turtles [ set fitness fitness + 1 ] ; Correction to avoid negative probabilities during evolutionary learning (Nowak 1998)
@@ -290,7 +292,7 @@ INPUTBOX
 266
 86
 N-coop
-100.0
+50.0
 1
 0
 Number
@@ -301,7 +303,7 @@ INPUTBOX
 325
 86
 N-defect
-100.0
+50.0
 1
 0
 Number
@@ -312,7 +314,7 @@ INPUTBOX
 78
 223
 N-direct
-100.0
+50.0
 1
 0
 Number
@@ -323,7 +325,7 @@ INPUTBOX
 80
 325
 N-indirect
-100.0
+50.0
 1
 0
 Number
@@ -334,7 +336,7 @@ INPUTBOX
 81
 424
 N-money
-100.0
+50.0
 1
 0
 Number
@@ -359,7 +361,7 @@ memory-size
 memory-size
 0
 count turtles
-500.0
+250.0
 1
 1
 NIL
@@ -655,7 +657,7 @@ INPUTBOX
 1230
 581
 set-equals-n
-300.0
+50.0
 1
 0
 Number
@@ -730,19 +732,44 @@ IF FITNESS; CUMULATIVE OR PER-TURN?
 1
 
 SLIDER
-331
-475
-503
-508
+287
+178
+459
+211
 force-mutate-share
 force-mutate-share
 0
-1
-0.003
+0.25
+0.013
 0.001
 1
 NIL
 HORIZONTAL
+
+SLIDER
+288
+140
+460
+173
+error-noise
+error-noise
+0
+1
+0.58
+0.01
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+283
+117
+470
+143
+UNDER TESTS: MUTATION AND NOISE
+10
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

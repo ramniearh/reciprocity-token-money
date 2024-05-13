@@ -64,13 +64,15 @@ to go
     set current-partner one-of other turtles
   ]
 
-  ask cooperators [ cooperate ]
-  ask defectors [ defect ]
-  ask directs [ ifelse not member? current-partner memory [ cooperate ][ defect if forgiveness? [ if member? current-partner memory [ set memory remove current-partner memory] ]] ] ; TO CODE: REMOVE ONCE PUNISHED
-  ask indirects [ ifelse [score] of current-partner > reputation-threshold [ cooperate ][ defect ]] ; if already punished, remove (Fr) ] ]
-  ask moneys [ ifelse [balance] of current-partner > debt-threshold
+  ask cooperators [ ifelse random-float 1 > error-noise [ cooperate ] [defect]]
+  ask defectors [ ifelse random-float 1 > error-noise  [defect] [cooperate] ]
+  ask directs [ ifelse random-float 1 > error-noise [ifelse not member? current-partner memory [ cooperate ][ defect if forgiveness? [ if member? current-partner memory [ set memory remove current-partner memory] ]] ] [defect]] ; TO CODE: REMOVE ONCE PUNISHED
+  ask indirects [ ifelse random-float 1 > error-noise [ifelse [score] of current-partner > reputation-threshold [ cooperate ][ defect ]] [defect]]; if already punished, remove (Fr) ] ]
+  ask moneys [ ifelse random-float 1 > error-noise [
+    ifelse [balance] of current-partner > debt-threshold
     [ cooperate if quid-pro-quo? [set balance balance + 1 ask current-partner [ set balance balance - 1 ]]]
-    [ defect ]
+    [ defect ]]
+    [defect]
   ]
 
   ask turtles [ set fitness fitness + 1 ] ; Correction to avoid negative probabilities during evolutionary learning (Nowak 1998)
@@ -119,8 +121,10 @@ to spring-off ; (Nowak 2005 Evolutionary updating: "in each time step a random i
   ask one-of turtles [
     set breed [breed] of rnd:weighted-one-of turtles [fitness]
     ;if mutation? if [ random-float < 0.001 [ set breed one-of breeds ]
+  ]
 
-  ; for invasion/"handcraft mutation" tests:
+  ask turtles [
+   ; for invasion/"handcraft mutation" tests:
     if random-float 1 < force-mutate-share [ choose-breed ]
   ]
 end
@@ -288,7 +292,7 @@ INPUTBOX
 266
 86
 N-coop
-100.0
+50.0
 1
 0
 Number
@@ -299,7 +303,7 @@ INPUTBOX
 325
 86
 N-defect
-100.0
+50.0
 1
 0
 Number
@@ -310,7 +314,7 @@ INPUTBOX
 78
 223
 N-direct
-100.0
+50.0
 1
 0
 Number
@@ -321,7 +325,7 @@ INPUTBOX
 80
 325
 N-indirect
-100.0
+50.0
 1
 0
 Number
@@ -332,7 +336,7 @@ INPUTBOX
 81
 424
 N-money
-100.0
+50.0
 1
 0
 Number
@@ -357,7 +361,7 @@ memory-size
 memory-size
 0
 count turtles
-500.0
+250.0
 1
 1
 NIL
@@ -653,7 +657,7 @@ INPUTBOX
 1230
 581
 set-equals-n
-300.0
+50.0
 1
 0
 Number
@@ -728,19 +732,44 @@ IF FITNESS; CUMULATIVE OR PER-TURN?
 1
 
 SLIDER
-331
-475
-503
-508
+287
+178
+459
+211
 force-mutate-share
 force-mutate-share
 0
-1
+0.25
 0.0
 0.001
 1
 NIL
 HORIZONTAL
+
+SLIDER
+288
+140
+460
+173
+error-noise
+error-noise
+0
+1
+0.0
+0.01
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+283
+117
+470
+143
+UNDER TESTS: MUTATION AND NOISE
+10
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1859,6 +1888,78 @@ NetLogo 6.4.0
       <value value="2"/>
       <value value="5"/>
       <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-money">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="debt-threshold">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="quid-pro-quo?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="evolutionary-updating?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-reputation">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reputation-threshold">
+      <value value="-1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="forgiveness?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="full-memory?">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="mutation review 100x5 fixe parameters" repetitions="100" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="10000"/>
+    <metric>cooperation-rate</metric>
+    <metric>count cooperators</metric>
+    <metric>count defectors</metric>
+    <metric>count directs</metric>
+    <metric>count indirects</metric>
+    <metric>count moneys</metric>
+    <metric>(sum [length memory] of turtles) / count turtles</metric>
+    <metric>sum [balance] of cooperators</metric>
+    <metric>sum [balance] of defectors</metric>
+    <metric>sum [balance] of directs</metric>
+    <metric>sum [balance] of indirects</metric>
+    <metric>sum [balance] of moneys</metric>
+    <metric>sum [score] of cooperators</metric>
+    <metric>sum [score] of defectors</metric>
+    <metric>sum [score] of directs</metric>
+    <metric>sum [score] of indirects</metric>
+    <metric>sum [score] of moneys</metric>
+    <runMetricsCondition>ticks mod 200 = 0</runMetricsCondition>
+    <enumeratedValueSet variable="N-coop">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-defect">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-direct">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-indirect">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-money">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="force-mutate-share">
+      <value value="0"/>
+      <value value="0.001"/>
+      <value value="0.005"/>
+      <value value="0.1"/>
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="benefit-to-cost-ratio">
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="initial-money">
       <value value="1"/>
