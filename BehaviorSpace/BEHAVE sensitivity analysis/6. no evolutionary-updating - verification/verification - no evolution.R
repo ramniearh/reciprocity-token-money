@@ -4,24 +4,26 @@ library(janitor)
 here()
 
 df_no_evol_5s <- 
-  here("BehaviorSpace", "BEHAVE sensitivity analysis", "no evolutionary-updating - verification", "money-reciprocity 3.0 - BehaviorSpace reference experiment - without evolution 100x5 500s500r.csv") %>%
+  here("BehaviorSpace", "BEHAVE sensitivity analysis", "6. no evolutionary-updating - verification", "money-reciprocity 3.0 - BehaviorSpace reference experiment - without evolution 100x5 500s500r.csv") %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%
   as_tibble() %>% 
-  select( #REVIEW (BASELINE-ONLY, ) REVALIDATE FOR FULL SWEEP 100x5
-    #-starts_with("n_"), #equal 5x100-distribution
-    #-memory_size, removed for BS
-    #-initial_reputation,
-    #-reputation_threshold,
-    #-starts_with("sum_"), #scores and balances removed now, might be needed for further analysis
-    #-starts_with("x_sum_")
+  select( 
+    -starts_with("n_"), #equal 5x100-distribution
+    -starts_with("count_"),
+    -quid_pro_quo, #always true
+    -evolutionary_updating, #always false
+    -initial_reputation,
+    -reputation_threshold,
+    -forgiveness
     ) %>%
   rename(
     step = x_step, run_number = x_run_number,
-    bc_ratio = benefit_to_cost_ratio
-    #average_memory_length = x_sum_length_memory_of_turtles_count_turtles,
+    bc_ratio = benefit_to_cost_ratio,
+    average_memory_length = x_sum_length_memory_of_turtles_count_turtles,
     #SCORES 
     #BALANCES 
+    #FITNESSES
   ) %>% 
   mutate(moneyness = initial_money - debt_threshold) %>% 
   mutate(
@@ -31,22 +33,169 @@ df_no_evol_5s <-
     moneyness = as.factor(moneyness)
   )
 
+# df_no_evol_4s <- 
+#   here("BehaviorSpace", "BEHAVE sensitivity analysis", "6. no evolutionary-updating - verification", "money-reciprocity 3.0 - BehaviorSpace reference experiment - without evolution 125x4 500s500r.csv") %>%
+#   read.csv(skip = 6) %>% 
+#   clean_names() %>%
+#   as_tibble() %>% 
+#   select( 
+#     -starts_with("n_"), #equal 5x100-distribution
+#     -starts_with("count_"),
+#     -quid_pro_quo, #always true
+#     -evolutionary_updating, #always false
+#     -initial_reputation,
+#     -reputation_threshold,
+#     -forgiveness,
+#     -initial_money,
+#     -debt_threshold
+#     #-starts_with("sum_"), #scores and balances removed now, might be needed for further analysis
+#     #-starts_with("x_sum_")
+#   ) %>%
+#   rename(
+#     step = x_step, run_number = x_run_number,
+#     bc_ratio = benefit_to_cost_ratio,
+#     average_memory_length = x_sum_length_memory_of_turtles_count_turtles,
+#     #SCORES 
+#     #BALANCES 
+#     #FITNESSES
+#   ) %>% 
+#   mutate(
+#     bc_ratio = as.factor(bc_ratio),
+#   )
+
+## all observations at 500 steps
+# no strategy evolution
+
+## VARIATION ON:
+# steps
+# bc_ratio
+# initial_money
+# debt_threshold
+
+## OUTCOMES:
+# cooperation rate
+# scores, balances, memory length by strategy
+# fitness by strategy
   
+## TO PLOT:
+# cooperation rates at 500 steps
+# fitness evolution in time - odd results
+# scores, balances and memory plots
+
+# 
+# df_no_evol_4s %>%  #coop rates independent of bc_ratio?
+#   filter(step > 0) %>% 
+#   ggplot(aes(x=cooperation_rate, fill = bc_ratio)) +
+#   geom_density(position = "identity", alpha = 0.3)
+
+df_no_evol_5s %>%  #ODD!! & NO STEP
+  ggplot(aes(x=cooperation_rate, fill = bc_ratio)) +
+  geom_density(position = "identity", alpha = 0.3) +
+  facet_grid(initial_money ~ debt_threshold, labeller = label_both)
+
+df_no_evol_5s %>%  #ODD!! NO STEP
+  ggplot(aes(x=cooperation_rate)) +
+  geom_density(position = "identity", alpha = 0.3) +
+  facet_grid(moneyness ~ bc_ratio, labeller = label_both)
+#!## very high cooperation rates at 999 liquidity?!
+# 
+# by_strategy_df_no_evol_4s <- df_no_evol_4s %>% 
+#   pivot_longer(starts_with("fit"), names_to = "strategy", values_to = "fitness_on_round") %>%
+#   mutate(strategy = case_when(
+#     strategy=="fitness_cooperators_this_round" ~ "cooperators",
+#     strategy=="fitness_defectors_this_round" ~ "defectors",
+#     strategy=="fitness_directs_this_round" ~ "directs",
+#     strategy=="fitness_indirects_this_round" ~ "indirects",
+#     strategy=="fitness_moneys_this_round" ~ "moneys"
+#   )
+#   ) 
+# by_strategy_df_no_evol_4s %>% 
+#   filter(step %in% c(50, 100, 250, 500)) %>% 
+#   ggplot(aes(y=fitness_on_round, x = strategy, color = strategy)) +
+#   geom_boxplot() +
+#   facet_wrap(~ step)
+# 
+# summary_by_strategy_df_no_evol_4s <- by_strategy_df_no_evol_4s %>% 
+#   group_by(step, strategy, bc_ratio) %>% 
+#   summarise(mean(fitness_on_round), sd(fitness_on_round)) #%>% 
+#   
+# summary_by_strategy_df_no_evol_4s %>% 
+#   filter(bc_ratio == 5) %>% 
+#   ggplot(aes(y = `mean(fitness_on_round)`, x = step, color = strategy)) + 
+#   geom_line() +
+#   #geom_ribbon(aes(ymin = `mean(fitness_on_round)` - 1.96 * `sd(fitness_on_round)`, ymax = `mean(fitness_on_round)` + 1.96 * `sd(fitness_on_round)`, fill = strategy), alpha = 0.2) +
+#   facet_grid( ~ bc_ratio) +
+#   ggtitle("No evolution - fitness by strategy, per round")
+
+
+
+by_strategy_df_no_evol_5s <- df_no_evol_5s %>% 
+  pivot_longer(starts_with("fit"), names_to = "strategy", values_to = "fitness_on_round") %>%
+  mutate(strategy = case_when(
+    strategy=="fitness_cooperators_this_round" ~ "cooperators",
+    strategy=="fitness_defectors_this_round" ~ "defectors",
+    strategy=="fitness_directs_this_round" ~ "directs",
+    strategy=="fitness_indirects_this_round" ~ "indirects",
+    strategy=="fitness_moneys_this_round" ~ "moneys"
+  )
+  ) 
   
+by_strategy_df_no_evol_5s %>% 
+  filter(step %in% c(1, 50, 100, 250, 500)) %>% 
+  ggplot(aes(y=fitness_on_round, x = strategy, fill = strategy)) +
+  geom_boxplot() +
+  facet_wrap(~ step)
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+summary_by_strategy_df_no_evol_5s <- by_strategy_df_no_evol_5s %>% 
+  group_by(step, strategy, bc_ratio, moneyness) %>% 
+  summarise(mean(fitness_on_round), sd(fitness_on_round))
+
+
+summary_by_strategy_df_no_evol_5s %>% 
+  ggplot(aes(y = `mean(fitness_on_round)`, x = step, color = strategy)) + 
+  geom_line() +
+  facet_grid(moneyness ~ bc_ratio, labeller = label_both) +
+  ggtitle("No evolution - fitness by strategy, per round")
+
+# ODD! 
+summary_by_strategy_df_no_evol_5s %>% 
+  filter(bc_ratio == 20) %>% 
+  filter(moneyness %in% c(1)) %>% 
+  filter(step > 0) %>% 
+  ggplot(aes(y = `mean(fitness_on_round)`, x = step, color = strategy)) + 
+  geom_line(linewidth = 1) +
+  #geom_ribbon(aes(ymin = `mean(fitness_on_round)` - 1.96 * `sd(fitness_on_round)`, ymax = `mean(fitness_on_round)` + 1.96 * `sd(fitness_on_round)`, fill = strategy), alpha = 0.2) +
+  facet_grid(~ moneyness, labeller = label_both) +
+  ggtitle("No evolution - fitness by strategy, per round, b/c ratio = (?)")
+
+
+balances_scores_memory_5s <- df_no_evol_5s %>% 
+  filter(step %% 25 == 0) %>% 
+  filter(bc_ratio == 20) %>% 
+  select(bc_ratio, step, moneyness, average_memory_length, starts_with("sum_")) 
+
+# balances plot:
+balances_scores_memory_5s %>% 
+  pivot_longer(starts_with("sum_balance"), names_to = "strategy", values_to = "sum_balance") %>%
+  #group_by(step, moneyness, bc_ratio, strategy) %>% 
+  filter(moneyness %in% c(1)) %>% 
+  ggplot(aes(x = step, y = sum_balance, color = strategy)) +
+  geom_line(linewidth = 1) +
+  facet_grid(~moneyness, labeller = label_both)
+
+# scores plot:
+balances_scores_memory_5s %>% 
+  pivot_longer(starts_with("sum_score"), names_to = "strategy", values_to = "sum_score") %>%
+  #group_by(step, moneyness, bc_ratio, strategy) %>% 
+  filter(moneyness %in% c(999)) %>% 
+  ggplot(aes(x = step, y = sum_score, color = strategy)) +
+  geom_line(linewidth = 1) +
+  facet_grid(bc_ratio~moneyness, labeller = label_both)
+
+
+
+
 # 
 # # SECOND 300 REPETITIONS
 # df100x5B <-

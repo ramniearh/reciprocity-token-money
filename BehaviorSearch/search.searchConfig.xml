@@ -28,9 +28,9 @@
         <paramSpec>["reputation-threshold" -1]</paramSpec>
         <paramSpec>["initial-reputation" 1]</paramSpec>
         <paramSpec>["initial-money" 1 ]</paramSpec>
-        <paramSpec>["debt-threshold" -10 -5 -1 0 1 5 10]</paramSpec>
+        <paramSpec>["debt-threshold" [-999 1 99]]</paramSpec>
         <paramSpec>["evolutionary-updating?" true ]</paramSpec>
-        <paramSpec>["quid-pro-quo?" true false]</paramSpec>
+        <paramSpec>["quid-pro-quo?" false true]</paramSpec>
         <paramSpec>["forgiveness?" true ]</paramSpec>
         <paramSpec>["set-equals-n" 100]</paramSpec>
     </searchSpace>
