@@ -127,11 +127,22 @@ to track-fitness
 end
 
 to spring-off ; (Nowak 2005 Evolutionary updating: "in each time step a random individual is chosen to die; the neighbors compete for the empty site proportional to their fitness")
+  if not full-evolutionary-update? [
   ask one-of turtles [
     ifelse cumulative-fitness?
     [ set breed [breed] of rnd:weighted-one-of turtles [cumulative-fitness] ]
     [set breed [breed] of rnd:weighted-one-of turtles [fitness] ]
     ;if mutation? if [ random-float < 0.001 [ set breed one-of breeds ]
+  ]
+  ]
+
+  if full-evolutionary-update? [
+  ask turtles [
+    ifelse cumulative-fitness?
+    [ set breed [breed] of rnd:weighted-one-of turtles [cumulative-fitness] ]
+    [set breed [breed] of rnd:weighted-one-of turtles [fitness] ]
+    ;if mutation? if [ random-float < 0.001 [ set breed one-of breeds ]
+  ]
   ]
 
   ask turtles [
@@ -269,7 +280,7 @@ benefit-to-cost-ratio
 benefit-to-cost-ratio
 0
 100
-6.0
+10.0
 1
 1
 NIL
@@ -303,7 +314,7 @@ INPUTBOX
 266
 86
 N-coop
-50.0
+100.0
 1
 0
 Number
@@ -314,7 +325,7 @@ INPUTBOX
 325
 86
 N-defect
-50.0
+100.0
 1
 0
 Number
@@ -325,7 +336,7 @@ INPUTBOX
 78
 223
 N-direct
-50.0
+100.0
 1
 0
 Number
@@ -336,7 +347,7 @@ INPUTBOX
 80
 325
 N-indirect
-50.0
+100.0
 1
 0
 Number
@@ -347,7 +358,7 @@ INPUTBOX
 81
 424
 N-money
-50.0
+100.0
 1
 0
 Number
@@ -372,7 +383,7 @@ memory-size
 memory-size
 0
 count turtles
-250.0
+500.0
 1
 1
 NIL
@@ -505,7 +516,7 @@ INPUTBOX
 172
 424
 initial-money
-1.0
+5.0
 1
 0
 Number
@@ -632,7 +643,7 @@ false
 "" ""
 PENS
 "default" 1.0 0 -13791810 true "" "carefully [plot variance [balance] of moneys] []"
-"pen-1" 1.0 0 -7500403 true "" "carefully [plot variance [balance] of turtles] []"
+"pen-1" 1.0 0 -16777216 true "" "carefully [plot variance [balance] of turtles] []"
 
 SWITCH
 1342
@@ -702,20 +713,20 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot cooperation-rate"
 
 TEXTBOX
-310
-549
-460
-567
+292
+571
+442
+589
 NO MUTATION?
 10
 0.0
 1
 
 TEXTBOX
-309
-562
-607
-601
+291
+584
+468
+618
 RANDOM OR LOW-FITNESS-BASED ELIMINATION?
 10
 0.0
@@ -733,10 +744,10 @@ full-memory?
 -1000
 
 SLIDER
-307
-511
-479
-544
+289
+533
+461
+566
 force-mutate-share
 force-mutate-share
 0
@@ -748,10 +759,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-307
-476
-479
-509
+289
+498
+461
+531
 error-noise
 error-noise
 0
@@ -763,32 +774,32 @@ NIL
 HORIZONTAL
 
 TEXTBOX
-312
-416
-499
-442
-TEST ZONE
+295
+404
+482
+430
+-----TEST ZONE----
 14
 0.0
 1
 
 SWITCH
-307
-441
-461
-474
+290
+463
+444
+496
 cumulative-fitness?
 cumulative-fitness?
-0
+1
 1
 -1000
 
 PLOT
-486
+476
 460
-686
+733
 610
-aggregate cumulative fitness of strategies
+aggregate cumulative fitness of agents, divided by strategies -- attention
 NIL
 NIL
 0.0
@@ -804,6 +815,28 @@ PENS
 "directs" 1.0 0 -955883 true "" "plot sum [cumulative-fitness] of directs"
 "indirects" 1.0 0 -1184463 true "" "plot sum [cumulative-fitness] of indirects"
 "moneys" 1.0 0 -13791810 true "" "plot sum [cumulative-fitness] of moneys"
+
+SWITCH
+289
+428
+473
+461
+full-evolutionary-update?
+full-evolutionary-update?
+1
+1
+-1000
+
+MONITOR
+859
+511
+1110
+556
+NIL
+count moneys with [balance <= debt-threshold]
+1
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -2204,7 +2237,7 @@ NetLogo 6.4.0
       <value value="0"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="cumulative fitness validation - fine-tuned without money 100x5 20k-steps 50" repetitions="50" runMetricsEveryStep="false">
+  <experiment name="cumulative fitness validation - fine-tuned without money 100x5 20k-steps 50" repetitions="20" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="10000"/>
@@ -2248,14 +2281,13 @@ NetLogo 6.4.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="benefit-to-cost-ratio">
       <value value="1"/>
-      <value value="3"/>
+      <value value="2"/>
       <value value="5"/>
       <value value="20"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="initial-money">
       <value value="0"/>
       <value value="0.5"/>
-      <value value="1"/>
       <value value="5"/>
       <value value="1000"/>
     </enumeratedValueSet>
@@ -2285,6 +2317,103 @@ NetLogo 6.4.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="force-mutate-share">
       <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cumulative-fitness?">
+      <value value="false"/>
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="reference - fine-tuned money - high defection 10k steps 25r" repetitions="25" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="10000"/>
+    <metric>cooperation-rate</metric>
+    <metric>count cooperators</metric>
+    <metric>count defectors</metric>
+    <metric>count directs</metric>
+    <metric>count indirects</metric>
+    <metric>count moneys</metric>
+    <metric>(sum [length memory] of turtles) / count turtles</metric>
+    <metric>sum [balance] of cooperators</metric>
+    <metric>sum [balance] of defectors</metric>
+    <metric>sum [balance] of directs</metric>
+    <metric>sum [balance] of indirects</metric>
+    <metric>sum [balance] of moneys</metric>
+    <metric>sum [score] of cooperators</metric>
+    <metric>sum [score] of defectors</metric>
+    <metric>sum [score] of directs</metric>
+    <metric>sum [score] of indirects</metric>
+    <metric>sum [score] of moneys</metric>
+    <metric>fitness-cooperators-this-round</metric>
+    <metric>fitness-defectors-this-round</metric>
+    <metric>fitness-directs-this-round</metric>
+    <metric>fitness-indirects-this-round</metric>
+    <metric>fitness-moneys-this-round</metric>
+    <runMetricsCondition>ticks mod 250 = 0</runMetricsCondition>
+    <enumeratedValueSet variable="N-coop">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-defect">
+      <value value="100"/>
+      <value value="200"/>
+      <value value="500"/>
+      <value value="1000"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-direct">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-indirect">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-money">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="benefit-to-cost-ratio">
+      <value value="1.1"/>
+      <value value="2"/>
+      <value value="5"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-money">
+      <value value="0"/>
+      <value value="0.5"/>
+      <value value="1"/>
+      <value value="5"/>
+      <value value="5000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="debt-threshold">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="quid-pro-quo?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="evolutionary-updating?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-reputation">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reputation-threshold">
+      <value value="-1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="forgiveness?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="full-memory?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="error-noise">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="force-mutate-share">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="cumulative-fitness?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="full-evolutionary-update?">
+      <value value="false"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

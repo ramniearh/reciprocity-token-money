@@ -1,12 +1,15 @@
 library(here)
 library(tidyverse)
 library(janitor)
+here()
+
+# REVIEW ROLE OF debt_threshold
 
 # Import ant treat data:
 
 
 df_fine_money <- 
-  here("BehaviorSpace", "BEHAVE sensitivity analysis", "0. reference - fine-tuned money", "money-reciprocity 3.0 - BehaviorSpace money verification - complete 100x5 20k-steps 100r-table.csv") %>%
+  here("BehaviorSpace", "BEHAVE sensitivity analysis", "00. reference - fine-tuned money", "money-reciprocity 3.0 - MAIN fine-tuned 100x5 20k-steps 50r.csv") %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%
   as_tibble()  %>% 
@@ -20,32 +23,73 @@ df_fine_money <-
   ) %>% 
   mutate(
     bc_ratio = as.factor(bc_ratio)
-    ) 
+    ) %>% 
+  mutate(
+    share_cooperators = count_cooperators / 500,
+    share_defectors = count_defectors / 500,
+    share_directs = count_directs / 500,
+    share_indirects = count_indirects / 500,
+    share_moneys = count_moneys / 500
+  )
 
-df_fine_money %>% 
-  filter(debt_threshold == 0) %>% 
-  filter(step %in% c(1000, 5000, 10000, 20000)) %>% 
-  ggplot(aes(x=bc_ratio, y=cooperation_rate)) +
-  geom_boxplot() + 
-  facet_grid(initial_money ~ step, labeller = label_both)+
-  ggtitle("Cooperation rates for different benefit-to-cost ratios (boxplot distribution across 50 repetitions)")
+
+## first-version mashup plots
 
 df_fine_money %>% 
   filter(debt_threshold == 0) %>% 
   filter(step %% 1000 == 0) %>% 
-  pivot_longer(cols = starts_with("count_"), names_to = "strategy", values_to = "survivor_count") %>% 
+  filter(bc_ratio %in% c(1.1, 5) ) %>%  
+  filter(initial_money %in% c(0, 10)) %>% 
+  pivot_longer(cols = starts_with("share_"), names_to = "strategy", values_to = "survivor_count") %>% 
   ggplot(aes(x=step, y=survivor_count, color = strategy, fill = strategy)) +
+  ylim(0,1) +
   stat_summary(
-    fun.data = "mean_sdl", 
-    geom = "line"
+    aes(y = cooperation_rate),
+    fun.data = "mean_se",
+    geom = "errorbar",
+    color="black"
   ) +
   stat_summary(
-    fun.data = "mean_sdl", 
+    fun.data = "mean_se", 
+    geom = "line",
+    linewidth = 0.75
+  ) +
+  stat_summary(
+    fun.data = "mean_se", 
     geom = "ribbon", 
     alpha = 0.2
   ) +
   facet_grid(initial_money ~ bc_ratio, labeller = label_both) +
-  ggtitle("Evolution of surviving strategies (mean and 2x standard deviations across 50 repetitions).")
+  theme_minimal() +
+  ggtitle("Evolution of surviving strategies and cooperation rates (50 repetitions, population = 500)*")
+
+?geom_boxplot
+
+stat_boxplot(
+  aes(y = cooperation_rate),
+  #fun.data = "mean_se",
+  geom = "boxplot",
+  fill = "black",
+  size = 0.1,
+  alpha = 0.1
+)
+?mean_se
+
+# debt threshold x money validation:
+df_fine_money %>% 
+  filter(debt_threshold == 0) %>%
+  filter(step %in% c(1000, 4000, 7000, 10000)) %>% 
+  filter(bc_ratio %in% c(1, 1.1, 1.5, 2, 5, 20, 50, 100) ) %>%  
+  filter(initial_money %in% c(0, 10, 100, 1000, 10000)) %>% 
+  ggplot(aes(group=step, x=step, y=cooperation_rate)) +
+  ylim(0,1) +
+  geom_boxplot() + 
+  facet_grid(initial_money ~ bc_ratio, labeller = label_both)+
+  ggtitle("Cooperation rates for different benefit-to-cost ratios (boxplot distribution, 50 repetitions, population = 500)")
+
+
+
+
 
 ############## #TODO
 ## Review no-evolutionary-updating mechanics
@@ -59,7 +103,7 @@ df_fine_money %>%
   ggplot(aes(x=bc_ratio, y=cooperation_rate)) +
   geom_boxplot() + 
   facet_grid(~initial_money, labeller = label_both)+
-  ggtitle("Cooperation rates at 5000 steps for different benefit-to-cost ratios (boxplot distribution across 50 repetitions)")
+  ggtitle("Cooperation rates at 5000 steps for different benefit-to-cost ratios (boxplot distribution across 100* repetitions)")
 
 
 df_fine_money %>% 
@@ -70,7 +114,8 @@ df_fine_money %>%
   ggplot(aes(x=step, y=survivor_count, color = strategy, fill = strategy)) +
   stat_summary(
     fun.data = "mean_sdl", 
-    geom = "line"
+    geom = "line",
+    linewidth = 0.75
   ) +
   stat_summary(
     fun.data = "mean_sdl", 
@@ -78,7 +123,7 @@ df_fine_money %>%
     alpha = 0.2
   ) +
   facet_grid(~initial_money, labeller = label_both) +
-  ggtitle("Evolution of surviving strategies for benefit/cost ratio of 50 (mean and 2x standard deviations across 50 repetitions).")
+  ggtitle("Evolution of surviving strategies for benefit/cost ratio of 50 (mean and 2x standard deviations across 100* repetitions).")
 
 
 
@@ -88,9 +133,9 @@ df_fine_money %>%
 
 
 
-######### NO-MONEY
+######### NO-MONEY -- AND TESTING REORGANIZED CHARTS WITH 0-to-1
 df_fine_no_money <- 
-  here("BehaviorSpace", "BEHAVE sensitivity analysis", "0. reference - fine-tuned money", "money-reciprocity 3.0 - BehaviorSpace reference - fine-tuned without money 100x5 20k-steps 50r.csv") %>%
+  here("BehaviorSpace", "BEHAVE sensitivity analysis", "00. reference - fine-tuned money", "money-reciprocity 3.0 - BehaviorSpace reference - fine-tuned without money 125x4 20k-steps 50r.csv") %>%
   read.csv(skip = 6) %>% 
   clean_names() %>%
   as_tibble()  %>% 
@@ -104,24 +149,32 @@ df_fine_no_money <-
   ) %>% 
   mutate(
     bc_ratio = as.factor(bc_ratio)
-  ) 
+  ) %>% 
+  mutate(
+    share_cooperators = count_cooperators / 500,
+    share_defectors = count_defectors / 500,
+    share_directs = count_directs / 500,
+    share_indirects = count_indirects / 500,
+    share_moneys = count_moneys / 500
+  )
 
 
 
 df_fine_no_money %>% 
   #filter(debt_threshold == 0) %>% 
-  filter(step %in% c(1000, 5000, 10000)) %>% 
-  ggplot(aes(x=bc_ratio, y=cooperation_rate)) +
+  filter(bc_ratio %in% c(1.1, 3, 10, 100)) %>% 
+  filter(step %in% c(0, 2500, 5000, 7500, 10000)) %>% 
+  ggplot(aes(group = step, x=step, y=cooperation_rate)) +
   geom_boxplot() + 
   ylim(0,1) +
-  facet_grid(~step, labeller = label_both)+
-  ggtitle("Cooperation rates at selected time steps for different benefit-to-cost ratios (no money, 100 repetitions)")
+  facet_grid(~bc_ratio, labeller = label_both)+
+  ggtitle("Cooperation rates at selected time steps (no money, 50 repetitions)")
 
 
 df_fine_no_money %>% 
   #filter(debt_threshold == 0) %>% 
-  filter(step %% 1000 == 0) %>% 
-  pivot_longer(cols = starts_with("count_"), names_to = "strategy", values_to = "survivor_count") %>% 
+  filter(bc_ratio %in% c(1.1, 3, 10, 100)) %>% 
+  pivot_longer(cols = starts_with("share_"), names_to = "strategy", values_to = "survivor_count") %>% 
   ggplot(aes(x=step, y=survivor_count, color = strategy, fill = strategy)) +
   stat_summary(
     fun.data = "mean_sdl", 
@@ -133,7 +186,7 @@ df_fine_no_money %>%
     alpha = 0.2
   ) +
   facet_grid(~bc_ratio, labeller = label_both) +
-  ggtitle("No money: evolution of surviving strategies (mean and 2x standard deviations across 100 repetitions).")
+  ggtitle("Evolution of surviving strategies (mean and 2x standard deviations, no money, 50 repetitions).")
 
 
 
