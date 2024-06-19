@@ -7,143 +7,15 @@ here()
 
 #################### NEW, INTEGRATED PLOTS
 
+library(here)
+library(tidyverse)
+library(janitor)
+here()
+
 # Import ant treat data - with money:
 
 df_fine_money <- 
-  here("BehaviorSpace", "BEHAVE sensitivity analysis", "00. reference - fine-tuned money", "money-reciprocity 3.0 - MAIN fine-tuned 100x5 10k-steps 50r.csv") %>% 
-  read.csv(skip = 6) %>% 
-  clean_names() %>%
-  as_tibble()  %>% 
-  #filter(x_step %% 1000 == 0) %>%  ###
-  select(-starts_with("sum_bal"),-starts_with("sum_sco"), -starts_with(("x_sum"))) %>% ##
-  select(-starts_with("fitness")) %>%  ##
-  rename(
-    step = x_step, 
-    run_number = x_run_number,
-    bc_ratio = benefit_to_cost_ratio,
-    liquidity = initial_money ####ATTENTION
-  ) %>% 
-  mutate(
-    bc_ratio = as.factor(bc_ratio),
-    ##liquidity = initial_money - debt_threshold ######ATTENTION
-  ) %>% 
-  mutate(
-    share_cooperators = count_cooperators / ( count_cooperators + count_defectors + count_directs + count_indirects + count_moneys ),
-    share_defectors = count_defectors / ( count_cooperators + count_defectors + count_directs + count_indirects + count_moneys ),
-    share_directs = count_directs / ( count_cooperators + count_defectors + count_directs + count_indirects + count_moneys ),
-    share_indirects = count_indirects / ( count_cooperators + count_defectors + count_directs + count_indirects + count_moneys ),
-    share_moneys = count_moneys / ( count_cooperators + count_defectors + count_directs + count_indirects + count_moneys )
-  ) %>% 
-  select(-starts_with("count_")) %>% 
-  pivot_longer(cols = starts_with("share_"), names_to = "strategy", values_to = "survivor_count") %>% 
-  mutate(strategy =
-           case_when(
-             strategy == "share_cooperators" ~ "cooperators",
-             strategy == "share_defectors" ~ "defectors",
-             strategy == "share_directs" ~ "direct-reciprocators",
-             strategy == "share_indirects" ~ "indirect-reciprocators",
-             strategy == "share_moneys" ~ "money-users",
-           )
-  )
-
-
-## Plot cooperation rates and share of surviving strategies in time (integrated - final version)?
-
-p_complete <- df_fine_money %>% 
-  filter(debt_threshold == 0) %>%  ######
-  filter(step %% 500 == 0) %>% 
-  ggplot(aes(x=step)) +
-  ylim(0, 1) +
-  stat_summary(
-    aes(y = cooperation_rate, shape = ""),
-    fun.data = "median_hilow",
-    geom = "point",
-    size = 0.5,
-    alpha = 0.9
-  ) +
-  stat_summary(
-    aes(y = cooperation_rate, linetype = ""),
-    fun.data = "median_hilow",
-    geom = "errorbar",
-    alpha = 0.6
-  ) +
-  stat_summary(
-    aes(y=survivor_count, color = strategy), 
-    fun.data = "median_hilow", 
-    geom = "line",
-    linewidth = 0.75
-  ) +
-  stat_summary(
-    aes(y=survivor_count, fill = strategy), 
-    fun.data = "median_hilow", 
-    geom = "ribbon", 
-    alpha = 0.2
-  ) +
-  labs(
-    y = "Proportion (0-1)",
-    color = "Strategy share",
-    fill = "Strategy share",
-    shape = "Cooperation rate",
-    linetype = "Cooperation rate",
-    title = "Evolution of surviving strategies and cooperation rates (Median and IQR over 50 repetitions; population = 500)**"
-  ) +
-  facet_grid(liquidity ~ bc_ratio, labeller = label_both) +
-  theme_minimal()
-
-
-p_complete
-
-### EXTENDED ABSTRACT PLOTS BELOW:
-
-p_money = df_fine_money %>% 
-  filter(debt_threshold == 0) %>%  ######
-  filter(step %% 500 == 0) %>% 
-  filter(bc_ratio %in% c(1, 2, 5, 20)) %>%
-  filter(liquidity %in% c(0, 0.5, 1, 5, 1000)) %>% 
-  ggplot(aes(x=step)) +
-  ylim(0, 1) +
-  stat_summary(
-    aes(y = cooperation_rate, shape = ""),
-    fun.data = "median_hilow",
-    geom = "point",
-    size = 0.5,
-    alpha = 0.9
-  ) +
-  stat_summary(
-    aes(y = cooperation_rate, linetype = ""),
-    fun.data = "median_hilow",
-    geom = "errorbar",
-    alpha = 0.6
-  ) +
-  stat_summary(
-    aes(y=survivor_count, color = strategy), 
-    fun.data = "median_hilow", 
-    geom = "line",
-    linewidth = 0.75
-  ) +
-  stat_summary(
-    aes(y=survivor_count, fill = strategy), 
-    fun.data = "median_hilow", 
-    geom = "ribbon", 
-    alpha = 0.2
-  ) +
-  labs(
-    y = "Proportion (0-1)",
-    color = "Share of survivors by strategy",
-    fill = "Share of survivors by strategy",
-    shape = "Cooperation rate on round",
-    linetype = "Cooperation rate on round",
-    title = "With money: evolution of surviving strategies and cooperation rates (Median and IQR over 50 repetitions; population = 500)**"
-  ) +
-  facet_grid(liquidity ~ bc_ratio, labeller = label_both) +
-  theme_minimal()
-
-p_money
-
-# Import ant treat data - with money:
-
-df_fine_no_money <- 
-  here("BehaviorSpace", "BEHAVE sensitivity analysis", "00. reference - fine-tuned money", "money-reciprocity 3.0 - BehaviorSpace reference - fine-tuned without money 125x4 10k-steps 50r.csv") %>% 
+  here("BehaviorSpace", "BEHAVE sensitivity analysis", "00. reference - fine-tuned money", "money-reciprocity 3.0 - MAIN fine-tuned 100x5 20k-steps 50r.csv") %>% 
   read.csv(skip = 6) %>% 
   clean_names() %>%
   as_tibble()  %>% 
@@ -178,13 +50,12 @@ df_fine_no_money <-
            )
   )
 
-# Plot
 
-p_no_money = df_fine_no_money %>% 
+## Plot cooperation rates and share of surviving strategies in time (integrated - final version)?
+
+p_complete <- df_fine_money %>% 
   filter(debt_threshold == 0) %>%  ######
   filter(step %% 500 == 0) %>% 
-  filter(bc_ratio %in% c(1, 2, 5, 20)) %>%
-  #filter(liquidity %in% c(0, 0.5, 1, 5, 1000)) %>% 
   ggplot(aes(x=step)) +
   ylim(0, 1) +
   stat_summary(
@@ -192,13 +63,13 @@ p_no_money = df_fine_no_money %>%
     fun.data = "median_hilow",
     geom = "point",
     size = 0.5,
-    alpha = 0.9
+    alpha = 0.8
   ) +
   stat_summary(
     aes(y = cooperation_rate, linetype = ""),
     fun.data = "median_hilow",
     geom = "errorbar",
-    alpha = 0.6
+    alpha = 0.2
   ) +
   stat_summary(
     aes(y=survivor_count, color = strategy), 
@@ -214,93 +85,29 @@ p_no_money = df_fine_no_money %>%
   ) +
   labs(
     y = "Proportion (0-1)",
-    color = "Share of survivors by strategy",
-    fill = "Share of survivors by strategy",
-    shape = "Cooperation rate on round",
-    linetype = "Cooperation rate on round",
-    title = "Without money: evolution of surviving strategies and cooperation rates (Median and IQR over 50 repetitions; population = 500)**"
+    color = "Strategy share",
+    fill = "Strategy share",
+    shape = "Cooperation rate",
+    linetype = "Cooperation rate",
+    title = "Evolution of surviving strategies and cooperation rates (Median and IQR over 50 repetitions; population = 500)**"
   ) +
-  facet_grid( ~ bc_ratio, labeller = label_both) +
+  facet_grid(liq ~ bc_ratio, labeller = label_both) +
   theme_minimal()
 
-p_no_money
+
+p_complete
 
 
-## analyse evolution of cooperation rate and money prevalence at end of run, in relation to liquidity
-## bc=10
-
-p_liquidity_all <- df_fine_money %>% 
-  filter(debt_threshold == 0) %>%  ######
-  filter(step == 10000) %>% 
-  #filter(bc_ratio == 2) %>% 
-  mutate(liquidity = as.factor(liquidity)) %>% 
-  ggplot(aes(x=liquidity)) +
-  geom_boxplot(aes(y=cooperation_rate)) +
-  geom_boxplot(aes(y=survivor_count, color = strategy)) +
-  facet_grid(bc_ratio~step) +
-  ggtitle("Cooperation rates (and share of survivinb strategies) at 10000 steps (50 repetitions,bc_ratio = ?)") +
-  theme_minimal()
-
-p_liquidity_all
 
 
-p_final_cooperation_tile <- df_fine_money %>% 
-  filter(debt_threshold == 0) %>%  ######
-  filter(step == 10000) %>% 
-  mutate(liquidity = as.factor(liquidity)) %>% 
-  group_by(liquidity, bc_ratio) %>% #view()
-  summarise(mean(cooperation_rate), sd(cooperation_rate)) %>% #view()
-  rename(mean_final_cooperation_rate = "mean(cooperation_rate)") %>% 
-  ggplot(aes(x=liquidity, y=bc_ratio)) +
-  geom_tile(aes(fill=mean_final_cooperation_rate)) +
-  ggtitle("Mean? Cooperation rate at 10000 steps (50 repetitions)") +
-  theme_minimal()
 
-p_final_money_share_tile <- df_fine_money %>% 
-  filter(debt_threshold == 0) %>%  ######
-  filter(step == 10000) %>% 
-  mutate(liquidity = as.factor(liquidity)) %>% 
-  filter(strategy == "money-users") %>% 
-  group_by(liquidity, bc_ratio) %>% #view()
-  summarise(mean(survivor_count)) %>% #view()
-  rename(mean_final_money_prevalence = "mean(survivor_count)") %>% 
-  ggplot(aes(x=liquidity, y=bc_ratio)) +
-  geom_tile(aes(fill=mean_final_money_prevalence)) +
-  ggtitle("Mean? MoneyPrev  at 10000 steps (50 repetitions)") +
-  theme_minimal()
 
-p_final_cooperation_tile
-p_final_money_share_tile
 
-?geom_tile
-#################### OLD#################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### #################### 
-#################### #################### #################### #################### 
-#################### OLD#################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### #################### 
-#################### #################### #################### #################### 
-#################### OLD#################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### #################### 
-#################### #################### #################### #################### 
-#################### OLD#################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### ####################
-#################### #################### #################### #################### 
-#################### #################### #################### #################### 
+
+
+
+
+
 #################### OLD#################### #################### ####################
 #################### #################### #################### ####################
 #################### #################### #################### ####################
