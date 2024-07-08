@@ -91,7 +91,8 @@ to go
 
 
   set cooperation-rate C / (C + D)
-
+  ;show C
+  ;show C + D
   tick
 end
 
@@ -280,7 +281,7 @@ benefit-to-cost-ratio
 benefit-to-cost-ratio
 0
 100
-18.0
+20.0
 1
 1
 NIL
@@ -347,7 +348,7 @@ INPUTBOX
 80
 325
 N-indirect
-100.0
+0.0
 1
 0
 Number
@@ -383,7 +384,7 @@ memory-size
 memory-size
 0
 count turtles
-400.0
+300.0
 1
 1
 NIL
@@ -471,7 +472,7 @@ PLOT
 32
 1135
 273
-per-agent fitness
+per-agent fitness on round
 NIL
 NIL
 0.0
@@ -516,7 +517,7 @@ INPUTBOX
 172
 424
 initial-money
-5.0
+1.0
 1
 0
 Number

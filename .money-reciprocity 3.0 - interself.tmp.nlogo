@@ -2,7 +2,7 @@
 extensions [ rnd ]
 
 globals [ benefit cost C D cooperation-rate cumulative-coop-rate ]
-turtles-own [ fitness memory balance-score strategy current-partner cumulative-fitness ]
+turtles-own [ fitness balance-score strategy current-partner cumulative-fitness ]
 
 breed [ cooperators cooperator ]
 breed [ defectors defector ]
@@ -22,7 +22,6 @@ to setup
 
   ask turtles [
     set fitness 0
-    set memory []
     set balance-score initial-balance-scores
     fd 5
   ]
@@ -44,7 +43,7 @@ to go
 
   ask ind-mons [ ifelse [balance-score] of current-partner > threshold
     [ cooperate
-      if self-enforcement? a[ set balance-score balance-score + 1 ask current-partner [ set balance-score balance-score - 1] ]
+      if self-enforcement? and interdependence? [ set balance-score balance-score + 1 ask current-partner [ set balance-score balance-score - 1] ]
     ]
     [ defect
     ]
@@ -203,7 +202,7 @@ benefit-to-cost-ratio
 benefit-to-cost-ratio
 0
 20
-10.0
+5.0
 1
 1
 NIL
@@ -248,7 +247,7 @@ INPUTBOX
 325
 86
 N-defect
-100.0
+0.0
 1
 0
 Number
@@ -341,7 +340,7 @@ INPUTBOX
 175
 179
 initial-balance-scores
-1.0
+5.0
 1
 0
 Number
@@ -395,7 +394,7 @@ SWITCH
 227
 self-enforcement?
 self-enforcement?
-1
+0
 1
 -1000
 
@@ -476,9 +475,27 @@ SWITCH
 227
 interdependence?
 interdependence?
-1
+0
 1
 -1000
+
+PLOT
+1131
+357
+1331
+507
+cooperation rate
+NIL
+NIL
+0.0
+10.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot cooperation-rate"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -827,10 +844,10 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment - CORE INTERSELF" repetitions="50" runMetricsEveryStep="false">
+  <experiment name="experiment - CORE INTERSELF" repetitions="100" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
-    <timeLimit steps="5000"/>
+    <timeLimit steps="10000"/>
     <metric>cooperation-rate</metric>
     <metric>count cooperators</metric>
     <metric>count defectors</metric>
@@ -860,18 +877,17 @@ NetLogo 6.4.0
     </enumeratedValueSet>
     <enumeratedValueSet variable="evolutionary-updating?">
       <value value="true"/>
-      <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="benefit-to-cost-ratio">
       <value value="1"/>
       <value value="2"/>
-      <value value="10"/>
+      <value value="5"/>
       <value value="100"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="initial-balance-scores">
       <value value="0"/>
       <value value="1"/>
-      <value value="5"/>
+      <value value="10"/>
       <value value="1000"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="threshold">

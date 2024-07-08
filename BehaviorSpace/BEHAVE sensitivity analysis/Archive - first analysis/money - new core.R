@@ -4,7 +4,6 @@ library(tidyverse)
 library(janitor)
 here()
 
-
 # 2. Import and process data -------------------------------------------------
 
 # 2.1 Simulation data with with money:
@@ -257,9 +256,61 @@ p_complete <- df_core_money %>%
   facet_grid(liquidity ~ bc_ratio, labeller = label_both) +
   theme_void()
 
+# 3.4 Plot cooperation rates and share of surviving strategies in time (without money, all simulated parameter values, axis labels removed)
+p_complete_no <- df_core_no_money %>% 
+  ggplot(aes(x=step)) +
+  ylim(0, 1) +
+  stat_summary(
+    aes(y = cooperation_rate, shape = ""),
+    fun.data = "median_hilow",
+    geom = "point",
+    size = 0.5,
+    alpha = 0.9
+  ) +
+  stat_summary(
+    aes(y = cooperation_rate, linetype = ""),
+    fun.data = "median_hilow",
+    geom = "errorbar",
+    alpha = 0.6
+  ) +
+  stat_summary(
+    aes(y=survivor_count, color = strategy), 
+    fun.data = "median_hilow", 
+    geom = "line",
+    linewidth = 0.75
+  ) +
+  stat_summary(
+    aes(y=survivor_count, fill = strategy), 
+    fun.data = "median_hilow", 
+    geom = "ribbon", 
+    alpha = 0.2
+  ) +
+  scale_color_manual(values = c("cooperators" = "#F8766D",
+                                "defectors"="#ABA300",
+                                "direct-reciprocators"="#00BE67",
+                                "indirect-reciprocators"="#00B8E7",
+                                "money-users"="#C77CFF"
+  )) +
+  scale_fill_manual(values = c("cooperators" = "#F8766D",
+                               "defectors"="#ABA300",
+                               "direct-reciprocators"="#00BE67",
+                               "indirect-reciprocators"="#00B8E7",
+                               "money-users"="#C77CFF"
+  )) +
+  labs(
+    x = "Simulation time step",
+    y = "Proportion (0-1)",
+    color = "Strategy share",
+    fill = "Strategy share",
+    shape = "Cooperation rate",
+    linetype = "Cooperation rate",
+    title = "Evolution of surviving strategies and cooperation rates (Median and IQR over 100 repetitions; population = 500)"
+  ) +
+  facet_grid( ~ bc_ratio, labeller = label_both) +
+  theme_void()
 
 p_complete
-
+p_complete_no
 
 # 4. Draw auxiliary plots -------------------------------------------------
 
@@ -290,3 +341,4 @@ p_money
 p_no_money
 p_liquidity_10
 p_complete  
+p_complete_no
