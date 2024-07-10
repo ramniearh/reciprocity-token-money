@@ -94,7 +94,8 @@ df_interself_money <-
   
 p_interself = df_interself_money %>% 
   filter(evolutionary_updating == TRUE) %>% 
-  filter(bc_ratio == 2 & liquidity == 1 ) %>% 
+  filter(bc_ratio == 5 & liquidity == 1 ) %>% 
+  #filter(step < 5000 ) %>% 
   #filter(n_coop == 100 & n_defect == 0) %>% 
   #filter(interdependence == TRUE & self_enforcement == TRUE) %>% 
   filter(survivor_count > 0) %>% 
@@ -125,13 +126,13 @@ p_interself = df_interself_money %>%
     geom = "ribbon", 
     alpha = 0.2
    ) +
-  scale_color_manual(values = c("cooperators" = "#F8766D",
-                                "defectors"="#ABA300",
-                                "reputation-or-money-users"="#C77CFF"
+  scale_color_manual(values = c("cooperators" = "#809ec2",
+                                "defectors"="#d092a7",
+                                "reputation-or-money-users"="#7153a1"
   )) +
-  scale_fill_manual(values = c("cooperators" = "#F8766D",
-                               "defectors"="#ABA300",
-                               "reputation-or-money-users"="#C77CFF"
+  scale_fill_manual(values = c("cooperators" = "#809ec2",
+                               "defectors"="#d092a7",
+                               "reputation-or-money-users"="#7153a1"
   )) +
   labs(
     x = "Simulation time step",
@@ -140,12 +141,13 @@ p_interself = df_interself_money %>%
     fill = "Share of survivors by strategy",
     shape = "Cooperation rate",
     linetype = "Cooperation rate",
-    title = "From reputation to money: evolution of surviving strategies and cooperation rates (Median and IQR over 100 repetitions; total population = 200 (300); benefit-to-cost ratio = 2, liquidity = 1)"
+    #title = "From reputation to money: evolution of surviving strategies and cooperation rates (Median and IQR over 100 repetitions; total population = 200 (300); benefit-to-cost ratio = 5, liquidity = 1)"
   ) +
   #facet_grid(liquidity ~ bc_ratio, labeller = label_both) #+
   #facet_grid(interdependence ~ self_enforcement, labeller = label_both) #+
   #facet_grid(n_coop ~ n_defect, labeller = label_both) #+
-  facet_grid(population_setup ~ stage) #+ theme_minimal()
+  facet_grid(population_setup ~ stage) + 
+  theme_minimal()
 
 p_interself
 

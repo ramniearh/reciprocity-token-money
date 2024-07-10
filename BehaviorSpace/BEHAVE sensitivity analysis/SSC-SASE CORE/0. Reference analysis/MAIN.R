@@ -283,6 +283,7 @@ p_complete <- df_core_money %>%
 
 p_complete 
 
+
 # 3.4 Plot cooperation rates and share of surviving strategies in time (without money, all simulated parameter values, axis labels removed)
 p_complete_no_money <- df_core_no_money %>% 
   ggplot(aes(x=step)) +
