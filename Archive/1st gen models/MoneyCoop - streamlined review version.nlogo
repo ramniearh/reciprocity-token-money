@@ -1,105 +1,75 @@
-; pending: review evolution/learning to match Nowak 1998 proportional reproduction
-extensions [ rnd ]
+; evol and no-evol
+; per-agent update
+globals [ benefit cost ]
 
-globals [ benefit cost C D cooperation-rate cumulative-coop-rate ]
-turtles-own [ fitness balance-score strategy current-partner cumulative-fitness ]
+breed [ coops coop]
+breed [ defs def]
+breed [ DRs DR ]
+breed [ IRs IR ]
+breed [ TMs TM]
 
-breed [ cooperators cooperator ]
-breed [ defectors defector ]
-
-breed [ ind-mons ind-money ]
+turtles-own [ fitness current-partner money? memory ]
 
 to setup
   clear-all
+  reset-ticks
+
+  create-coops 100 ;coop-pop
+  create-defs 100 ;def-pop
+  create-DRs 100 ;DR-pop
+  ;create-IRs 100 ;IR-pop
+  create-TMs 100 ;TM-pop
 
   set cost 1
-  set benefit cost * benefit-to-cost-ratio
-
-  create-cooperators N-coop
-  create-defectors N-defect
-
-  create-ind-mons N-ind-mon
+  set benefit 10
 
   ask turtles [
-    set fitness 0
-    set balance-score initial-balance-scores
-    fd 5
+    set money? one-of [ TRUE FALSE ]
+    set memory []
+
   ]
 
-  reset-ticks
+end
+
+to help
+  set fitness fitness - cost
+  ask current-partner [ set fitness fitness + benefit ]
+end
+
+to help-not
+  ask current-partner [ set memory lput myself memory ]
 end
 
 to go
-  set C 0
-  set D 0
-
   ask turtles [
-    set fitness 0 ;testing
-    set current-partner one-of other turtles
+    set fitness 0
+   set current-partner one-of other turtles
   ]
 
-  ask cooperators [ cooperate ]
-  ask defectors [ defect ]
+  ask coops [ help ]
+  ask defs [ help-not ]
+  ask DRs [ ifelse not member? current-partner memory [ help ][ help-not ] ]
+  ;ask IRs [ ifelse random-float 1 < 0.5 [ help ][ help-not ] ]
+  ask TMs [
+    ifelse [money?] of current-partner = TRUE and money? = FALSE
+    [ help
+      set money? TRUE
+      ask current-partner [ set money? FALSE ]
+    ] [ help-not ]
 
-  ask ind-mons [ ifelse [balance-score] of current-partner > threshold
-    [ cooperate
-      if self-enforcement? and interdependence? [ set balance-score balance-score + 1 ask current-partner [ set balance-score balance-score - 1] ]
-    ]
-    [ defect
-    ]
+
   ]
 
-  ask turtles [ set fitness fitness + 1 ] ; Correction to avoid negative probabilities during evolutionary learning (Nowak 1998)
 
-  if evolutionary-updating? [ spring-off ]
-
-  set cooperation-rate C / (C + D)
 
   tick
 end
-
-
-
-to cooperate
-  set fitness fitness - cost
-  if not self-enforcement? [ set balance-score balance-score + 1 ]
-
-  ask current-partner [
-    set fitness fitness + benefit
-    if interdependence? and not self-enforcement? [ set balance-score balance-score - 1  ]
-  ]
-
-  set C C + 1
-end
-
-
-to defect
-  if not interdependence? and not self-enforcement? [ set balance-score balance-score - 1 ]
-
-  set D D + 1
-end
-
-
-
-to spring-off ; (Nowak 2005 Evolutionary updating: "in each time step a random individual is chosen to die; the neighbors compete for the empty site proportional to their fitness")
-  ask one-of turtles [
-    set breed [breed] of rnd:weighted-one-of turtles [fitness]
-  ]
-end
-
-
-to set-equals
-  set N-coop set-equals-n
-  set N-defect set-equals-n
-  set N-ind-mon set-equals-n
-
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-248
-38
-289
-80
+210
+10
+251
+52
 -1
 -1
 1.0
@@ -123,29 +93,12 @@ ticks
 30.0
 
 BUTTON
-6
-27
-69
-60
+49
+79
+112
+112
 NIL
-setup\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-73
-27
-136
-60
-NIL
-go
+setup
 NIL
 1
 T
@@ -157,10 +110,10 @@ NIL
 1
 
 BUTTON
-139
-27
-202
-60
+50
+129
+113
+162
 NIL
 go
 T
@@ -174,328 +127,48 @@ NIL
 1
 
 PLOT
-377
-33
-803
-274
-total fitness
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"ind-mons" 1.0 0 -13791810 true "" "plot sum [fitness] of ind-mons"
-"defectors" 1.0 0 -7500403 true "" "plot sum [fitness] of defectors"
-"cooperators" 1.0 0 -13840069 true "" "plot sum [fitness] of cooperators"
-
-SLIDER
-17
-66
-189
-99
-benefit-to-cost-ratio
-benefit-to-cost-ratio
-0
-20
-5.0
-1
-1
-NIL
-HORIZONTAL
-
-MONITOR
-586
-494
-684
-539
-average scores
-sum [balance-score] of turtles / count turtles
-1
-1
-11
-
-MONITOR
-693
-493
-818
-538
-total balance-scores
-sum [balance-score] of turtles
-1
-1
-11
-
-INPUTBOX
-214
-26
-266
-86
-N-coop
-100.0
-1
-0
-Number
-
-INPUTBOX
-270
-26
-325
-86
-N-defect
-0.0
-1
-0
-Number
-
-INPUTBOX
-20
-119
-84
-179
-N-ind-mon
-100.0
-1
-0
-Number
-
-MONITOR
-914
-279
-1049
-324
-average agent fitness
-sum [fitness] of turtles / count turtles
-1
-1
-11
-
-PLOT
-589
-333
-789
-483
-balance-scores
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -13791810 true "" "plot sum [balance-score] of ind-mons"
-"pen-3" 1.0 0 -13840069 true "" "plot sum [balance-score] of cooperators"
-"pen-4" 1.0 0 -7500403 true "" "plot sum [balance-score] of defectors"
-
-PLOT
-1138
-32
-1477
-273
-surviving strategies
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"cooperators" 1.0 0 -13840069 true "" "plot count cooperators"
-"defectors" 1.0 0 -7500403 true "" "plot count defectors"
-"money users" 1.0 0 -13791810 true "" "plot count ind-mons"
-
-PLOT
-808
-32
-1135
-273
-per-agent fitness
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"pen-2" 1.0 0 -13791810 true "" "carefully [ plot sum [fitness] of ind-mons / count ind-mons ][]"
-"pen-3" 1.0 0 -13840069 true "" "carefully [ plot sum [fitness] of cooperators / count cooperators ][]"
-"pen-4" 1.0 0 -7500403 true "" "carefully [ plot sum [fitness] of defectors / count defectors ][]"
-
-INPUTBOX
-87
-119
-175
-179
-initial-balance-scores
-5.0
-1
-0
-Number
-
-INPUTBOX
-179
-119
-285
-179
-threshold
-0.0
-1
-0
-Number
-
-TEXTBOX
-66
-238
-277
-277
-\"IR-M\" agents only help agents with a \"balance-score\" higher than a threshold
-10
-0.0
-1
-
-TEXTBOX
-21
-429
-272
 572
-Background mechanics (always active):\nWhen an agent cooperates with a partner:\n- the agent's reputation score is increased\n- the partner's money balance is decreased\n- the agent's money balance is increased\nWhen an agent does not cooperate:\n- the agent's reputation score is decreased\n- the agent enters partner's memory\nBUT note the role of Quid-pro-Quo: when active, this happens only for \"money\" agents
-10
+80
+1155
+365
+plot 1
+NIL
+NIL
 0.0
-1
-
-SWITCH
-74
-337
-246
-370
-evolutionary-updating?
-evolutionary-updating?
-0
-1
--1000
-
-SWITCH
-178
-194
-326
-227
-self-enforcement?
-self-enforcement?
-0
-1
--1000
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"coops" 1.0 0 -13791810 true "" "plot sum [fitness] of coops"
+"defs" 1.0 0 -2674135 true "" "plot sum [fitness] of defs"
+"token money" 1.0 0 -8630108 true "" "plot sum [fitness] of TMs"
+"ind-rec" 1.0 0 -1184463 true "" "plot sum [fitness] of IRs"
+"dir-rec" 1.0 0 -955883 true "" "plot sum [fitness] of DRs"
 
 MONITOR
-736
-277
-831
-322
-NIL
-cooperation-rate
-11
-1
-11
-
-MONITOR
-837
-492
-1058
-537
-NIL
-variance [balance-score] of ind-mons
-17
-1
-11
-
-PLOT
-827
+278
 331
-1027
-481
-variance of balance-scores
+496
+376
 NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -13345367 true "" "carefully [plot variance [balance-score] of cooperators] []"
-"pen-1" 1.0 0 -13840069 true "" "carefully [plot variance [balance-score] of ind-mons] []"
-"pen-2" 1.0 0 -7500403 true "" "carefully [plot variance [balance-score] of defectors] []"
-
-BUTTON
-398
-560
-484
-593
-NIL
-set-equals
-NIL
+count turtles with [money? = TRUE]
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
 1
+11
 
-INPUTBOX
-498
-547
-570
-607
-set-equals-n
-100.0
-1
-0
-Number
-
-SWITCH
-27
-194
-174
-227
-interdependence?
-interdependence?
-0
-1
--1000
-
-PLOT
-1131
-357
-1331
-507
-cooperation rate
+MONITOR
+375
+424
+602
+469
 NIL
-NIL
-0.0
-10.0
-0.0
-1.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot cooperation-rate"
+sum [length memory] of turtles
+1
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -843,58 +516,6 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
-<experiments>
-  <experiment name="experiment - CORE INTERSELF" repetitions="100" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>go</go>
-    <timeLimit steps="10000"/>
-    <metric>cooperation-rate</metric>
-    <metric>count cooperators</metric>
-    <metric>count defectors</metric>
-    <metric>count ind-mons</metric>
-    <metric>sum [balance-score] of cooperators</metric>
-    <metric>sum [balance-score] of defectors</metric>
-    <metric>sum [balance-score] of ind-mons</metric>
-    <runMetricsCondition>ticks mod 250 = 0</runMetricsCondition>
-    <enumeratedValueSet variable="N-ind-mon">
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="N-coop">
-      <value value="0"/>
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="N-defect">
-      <value value="0"/>
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="self-enforcement?">
-      <value value="true"/>
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="interdependence?">
-      <value value="true"/>
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="evolutionary-updating?">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="benefit-to-cost-ratio">
-      <value value="1"/>
-      <value value="2"/>
-      <value value="5"/>
-      <value value="100"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="initial-balance-scores">
-      <value value="0"/>
-      <value value="1"/>
-      <value value="10"/>
-      <value value="1000"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="threshold">
-      <value value="0"/>
-    </enumeratedValueSet>
-  </experiment>
-</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default

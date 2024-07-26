@@ -2944,6 +2944,90 @@ NetLogo 6.4.0
       <value value="0"/>
     </enumeratedValueSet>
   </experiment>
+  <experiment name="FINAL-SM - HIGH-DEFECTION- 10000s 100r" repetitions="100" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="10000"/>
+    <metric>cooperation-rate</metric>
+    <metric>count cooperators</metric>
+    <metric>count defectors</metric>
+    <metric>count directs</metric>
+    <metric>count indirects</metric>
+    <metric>count moneys</metric>
+    <metric>(sum [length memory] of turtles) / count turtles</metric>
+    <metric>sum [balance] of cooperators</metric>
+    <metric>sum [balance] of defectors</metric>
+    <metric>sum [balance] of directs</metric>
+    <metric>sum [balance] of indirects</metric>
+    <metric>sum [balance] of moneys</metric>
+    <metric>sum [score] of cooperators</metric>
+    <metric>sum [score] of defectors</metric>
+    <metric>sum [score] of directs</metric>
+    <metric>sum [score] of indirects</metric>
+    <metric>sum [score] of moneys</metric>
+    <metric>fitness-cooperators-this-round</metric>
+    <metric>fitness-defectors-this-round</metric>
+    <metric>fitness-directs-this-round</metric>
+    <metric>fitness-indirects-this-round</metric>
+    <metric>fitness-moneys-this-round</metric>
+    <runMetricsCondition>ticks mod 250 = 0</runMetricsCondition>
+    <enumeratedValueSet variable="N-coop">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-defect">
+      <value value="400"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-direct">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-indirect">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="N-money">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="benefit-to-cost-ratio">
+      <value value="1"/>
+      <value value="2"/>
+      <value value="10"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-money">
+      <value value="0"/>
+      <value value="0.25"/>
+      <value value="1"/>
+      <value value="5"/>
+      <value value="100"/>
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="debt-threshold">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="quid-pro-quo?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="evolutionary-updating?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-reputation">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reputation-threshold">
+      <value value="-1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="forgiveness?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="full-memory?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="error-noise">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="force-mutate-share">
+      <value value="0"/>
+    </enumeratedValueSet>
+  </experiment>
 </experiments>
 @#$#@#$#@
 @#$#@#$#@

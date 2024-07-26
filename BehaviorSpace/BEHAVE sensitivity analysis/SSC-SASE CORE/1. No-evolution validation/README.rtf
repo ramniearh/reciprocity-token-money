@@ -1,27 +1,28 @@
-Core reference files. Used to generate all charts present in the main paper, as well as sensitivity analysis sweep in appendix.
+No-evolution analysis files. Used to generate data for supplementary material "No-evolution dynamics" section.
 
 Simulation information:
-Two sets of simulations run: with and without the money strategy activated. All runs stop at 10000 steps. 
+Two sets of simulations run: with and without the money strategy activated. All runs stop at 500 steps. Evolutionary updating deactivated for all runs.
 Total population: 500 agents, equally distributed across strategies at setup.
 100 repetitions were run per scenario, with fine-tuned variations in liquidity and benefit. All other parameters held constant.
 
 Data sources:
-money-reciprocity 3.0 - BehaviorSpace reference - with money
-money-reciprocity 3.0 - BehaviorSpace reference - without money
+money-reciprocity 3.0 - BehaviorSpace FINAL-SM - NOEVOL - BENCHMARK.csv
+money-reciprocity 3.0 - BehaviorSpace FINAL-SM - NOEVOL - MONEY.csv
 
-R Script for analysis: MAIN.R
+R Script for analysis: Analysis - no evolution mechanics.R
 
 Model file: money-reciprocity 3.0 - BehaviorSpace.nlogo
 
 BehaviorSpace configuration: 
+
 Variables:
 ["N-coop" 100]
 ["N-defect" 100]
 ["N-direct" 100]
 ["N-indirect" 100]
 ["N-money" 100]
-["benefit-to-cost-ratio" 1 1.1 1.25 1.5 2 3 5 10 20 50 100]
-["initial-money" 0 0.05 0.1 0.25 0.5 0.75 1 2 3 5 10 20 50 100 250 500 1000 10000]
+***
+***
 ["debt-threshold" 0]
 ["quid-pro-quo?" true]
 ["evolutionary-updating?" true]

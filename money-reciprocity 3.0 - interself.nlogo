@@ -44,9 +44,11 @@ to go
 
   ask ind-mons [ ifelse [balance-score] of current-partner > threshold
     [ cooperate
-      if self-enforcement? and interdependence? [ set balance-score balance-score + 1 ask current-partner [ set balance-score balance-score - 1] ]
+      if interdependence? and self-enforcement? [ set balance-score balance-score + 1 ask current-partner [ set balance-score balance-score - 1] ] ; money scenario
+      if not interdependence? and self-enforcement? [ set balance-score balance-score + 1 ]  ; to think about, odd scenario
     ]
     [ defect
+      if not interdependence? and self-enforcement? [ set balance-score balance-score + 1 ] ; to think about, odd scenario
     ]
   ]
 
@@ -63,11 +65,12 @@ end
 
 to cooperate
   set fitness fitness - cost
-  if not self-enforcement? [ set balance-score balance-score + 1 ]
+  if not interdependence? and not self-enforcement? [ set balance-score balance-score + 1 ] ;; reputation scenario
+  if interdependence? and not self-enforcement? [ set balance-score balance-score + 1  ] ;; notional intermediary passive debt scenario, could be collapsed with above line
 
   ask current-partner [
     set fitness fitness + benefit
-    if interdependence? and not self-enforcement? [ set balance-score balance-score - 1  ]
+    if interdependence? and not self-enforcement? [ set balance-score balance-score - 1  ] ;; notional intermediary passive debt scenario
   ]
 
   set C C + 1
@@ -75,7 +78,7 @@ end
 
 
 to defect
-  if not interdependence? and not self-enforcement? [ set balance-score balance-score - 1 ]
+  if not interdependence? and not self-enforcement? [ set balance-score balance-score - 1 ] ;; reputation scenario
 
   set D D + 1
 end
@@ -437,8 +440,8 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -13345367 true "" "carefully [plot variance [balance-score] of cooperators] []"
-"pen-1" 1.0 0 -13840069 true "" "carefully [plot variance [balance-score] of ind-mons] []"
+"default" 1.0 0 -13345367 true "" "carefully [plot variance [balance-score] of ind-mons] []"
+"pen-1" 1.0 0 -13840069 true "" "carefully [plot variance [balance-score] of cooperators] []"
 "pen-2" 1.0 0 -7500403 true "" "carefully [plot variance [balance-score] of defectors] []"
 
 BUTTON
@@ -476,9 +479,27 @@ SWITCH
 227
 interdependence?
 interdependence?
-1
+0
 1
 -1000
+
+PLOT
+1184
+309
+1384
+459
+cooperation-rate
+NIL
+NIL
+0.0
+10.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot cooperation-rate"
 
 @#$#@#$#@
 ## WHAT IS IT?

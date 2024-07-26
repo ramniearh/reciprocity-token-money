@@ -18,8 +18,6 @@ library(tidyverse)
 library(janitor)
 here()
 
-
-
 # 2. Import and process data -------------------------------------------------
 
 # 2.1 Simulation data for the reputation-to-money scenario:
@@ -126,13 +124,13 @@ p_interself = df_interself_money %>%
     geom = "ribbon", 
     alpha = 0.2
    ) +
-  scale_color_manual(values = c("cooperators" = "#809ec2",
-                                "defectors"="#d092a7",
-                                "reputation-or-money-users"="#7153a1"
+  scale_color_manual(values = c("cooperators" = "#F8766D",
+                                "defectors"="#ABA300",
+                                "reputation-or-money-users"="#C77CFF"
   )) +
-  scale_fill_manual(values = c("cooperators" = "#809ec2",
-                               "defectors"="#d092a7",
-                               "reputation-or-money-users"="#7153a1"
+  scale_fill_manual(values = c("cooperators" = "#F8766D",
+                               "defectors"="#ABA300",
+                               "reputation-or-money-users"="#C77CFF"
   )) +
   labs(
     x = "Simulation time step",
@@ -141,7 +139,7 @@ p_interself = df_interself_money %>%
     fill = "Share of survivors by strategy",
     shape = "Cooperation rate",
     linetype = "Cooperation rate",
-    #title = "From reputation to money: evolution of surviving strategies and cooperation rates (Median and IQR over 100 repetitions; total population = 200 (300); benefit-to-cost ratio = 5, liquidity = 1)"
+    title = "From reputation to money: evolution of surviving strategies and cooperation rates (Median and IQR over 100 repetitions; total population = 200 (300); benefit-to-cost ratio = 5, liquidity = 1)"
   ) +
   #facet_grid(liquidity ~ bc_ratio, labeller = label_both) #+
   #facet_grid(interdependence ~ self_enforcement, labeller = label_both) #+

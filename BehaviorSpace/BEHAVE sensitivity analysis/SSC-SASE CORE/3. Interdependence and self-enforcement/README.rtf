@@ -1,0 +1,36 @@
+Supplementary Material files used for the Money submechanism verification section.
+
+Simulation information:
+Simplified model variation with staged adjustments converting a mechanism from reputation to money. All runs stop at 5000 steps. 
+Total population: 200 or 300 agents at setup. 100 money agents for every scenario plus 0 or 100 cooperators or defectors.
+100*** repetitions were run per scenario, with fine-tuned variations in liquidity and benefit. All other parameters held constant.
+
+Data sources:
+
+R Script for analysis:
+
+Model file: money-reciprocity 3.0 - BehaviorSpace.nlogo
+
+BehaviorSpace configuration: 
+
+Variables:
+
+["N-ind-mon" 100]
+["N-coop" 0 100]
+["N-defect" 0 100]
+["self-enforcement?" true false]
+["interdependence?" true false]
+["evolutionary-updating?" true false]
+["benefit-to-cost-ratio" 1 2 10 100]
+["initial-balance-scores" 0 1 5 1000]
+["threshold" 0]
+
+
+Metrics:
+cooperation-rate
+count cooperators
+count defectors
+count ind-mons
+sum [balance-score] of cooperators
+sum [balance-score] of defectors
+sum [balance-score] of ind-mons
