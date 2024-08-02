@@ -341,8 +341,8 @@ p_liquidity_5
 # 4.2 Plot summarized cooperation rates and strategy money prevalence at end of run for all liquidity and benefit-to-cost ratios
 p_complete_end <- df_core_money %>% 
   filter(step == 10000) %>% 
-  filter(!liquidity %in% c(0, .05, 0.25, 0.75, 3, 10000)) %>% 
-  #filter(bc_ratio != 1) %>% 
+  filter(!liquidity %in% c(0, .05, 0.25, 0.75, 3, 20, 10000)) %>% 
+  filter(bc_ratio != 1) %>% 
   mutate(
     bc_ratio = as.factor(bc_ratio),
     liquidity = as.factor(liquidity)
@@ -362,13 +362,14 @@ p_complete_end <- df_core_money %>%
   geom_tile(aes(alpha = mean_cooperation_rate, fill = most_prevalent), lwd = 1, color = "black") +
   coord_fixed() +
   scale_alpha(range = c(0.3, 1)) +
-  geom_text(aes(label = sprintf("%.2f", sd_cooperation_rate), alpha = mean_cooperation_rate)) +
+  geom_text(aes(label = sprintf("%.2f", mean_cooperation_rate), alpha = mean_cooperation_rate), nudge_y = 0.05, size = 4) +
+  geom_text(aes(label = sprintf("%.2f", sd_cooperation_rate), alpha = mean_cooperation_rate), nudge_y = -0.15, size = 3) +
   scale_fill_manual(
     values = c("defectors"="#ABA300","money-users"="#7153a1","none above 50%" = "darkgrey")) +
   labs(
     x = "Benefit-to-cost ratio",
     y = "Liquidity",
-    fill = "Prevalent strategy (>50%+time)",
+    fill = "Most commonly prevalent strategy",
     alpha = "Mean cooperation rate"
     #title = "With money: cooperation rates and most common winning strategies at end of run (Mean and SD over 100 repetitions; total population = 500)"
   ) +
